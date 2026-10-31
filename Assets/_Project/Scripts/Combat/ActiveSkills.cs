@@ -11,6 +11,8 @@ using UnityEngine.InputSystem;
 /// </summary>
 public sealed class ActiveSkills : MonoBehaviour
 {
+    /// <summary>The shock wave is removed from gameplay. Focus-by-click remains available.</summary>
+    public static readonly bool ShockWaveEnabled = false;
     public float shockCooldown = 14f;
     public float shockRadius = 3.4f;
     public float shockKnockback = 2.4f;
@@ -55,7 +57,7 @@ public sealed class ActiveSkills : MonoBehaviour
         UpdateReticle();
 
         var kb = Keyboard.current;
-        if (kb != null && kb.spaceKey.wasPressedThisFrame && Time.time >= shockReadyAt) ShockWave();
+        if (ShockWaveEnabled && kb != null && kb.spaceKey.wasPressedThisFrame && Time.time >= shockReadyAt) ShockWave();
     }
 
     // ---- usado pelo HUD (botao da onda de choque) ----
@@ -65,6 +67,7 @@ public sealed class ActiveSkills : MonoBehaviour
     /// <summary>Dispara a onda de choque pelo clique no HUD (mesmas regras da tecla ESPACO).</summary>
     public bool TryShockWave()
     {
+        if (!ShockWaveEnabled) return false;
         if (hero == null || Time.timeScale == 0f) return false;
         if (heroHealth != null && heroHealth.Current <= 0f) return false;
         if (flow == null) flow = FindFirstObjectByType<MissionFlow>();

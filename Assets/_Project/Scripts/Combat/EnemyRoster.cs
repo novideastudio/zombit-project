@@ -235,6 +235,7 @@ public static class EnemyFactory
 
     public static Enemy Spawn(EnemyEntry e, Vector3 pos, Transform target, EliteMod mod = EliteMod.None)
     {
+        pos.y += CombatVisuals.NextLaneOffset(e.tier);   // small vertical spread around the road centre
         float s = ComputeScale(e);
         bool poolable = e.tier != Tier.Boss;   // chefe tem barra de vida propria e aparece uma vez: nao entra no pool
 

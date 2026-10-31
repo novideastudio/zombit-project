@@ -76,6 +76,15 @@ public sealed class PixelCharacterMotion : MonoBehaviour
         deathTime = 0f;
     }
 
+    Color GradedTint
+    {
+        get
+        {
+            Color grade = CombatVisuals.CharacterGrade(isEnemy);
+            return new Color(tint.r * grade.r, tint.g * grade.g, tint.b * grade.b, tint.a);
+        }
+    }
+
     public void SetMoving(bool value) { moving = value; }
     public void Recoil() { recoil = 0.11f; }
 
@@ -95,7 +104,7 @@ public sealed class PixelCharacterMotion : MonoBehaviour
         lastBob = 0f;
         moving = false;
         baseScale = transform.localScale;
-        if (sr != null) sr.color = tint;
+        if (sr != null) sr.color = GradedTint;
     }
 
     /// <summary>Pulsa o sprite na cor dada (2 batidas que se apagam) e volta ao tint normal.</summary>
@@ -161,13 +170,14 @@ public sealed class PixelCharacterMotion : MonoBehaviour
 
         if (sr)
         {
+            Color graded = GradedTint;
             Color baseColor = flash > 0f
-                ? Color.Lerp(tint, new Color(1f, 0.45f, 0.42f), Mathf.Clamp01(flash / 0.09f))
-                : tint;
+                ? Color.Lerp(graded, new Color(1f, 0.45f, 0.42f), Mathf.Clamp01(flash / 0.09f))
+                : graded;
             float g = GlowAmount();
             if (g > 0f) baseColor = Color.Lerp(baseColor, glowColor, Mathf.Clamp01(g));
             if (flash > 0f || g > 0f) sr.color = baseColor;
-            else if (sr.color.a >= 0.99f) sr.color = tint;
+            else if (sr.color.a >= 0.99f) sr.color = graded;
         }
     }
 }

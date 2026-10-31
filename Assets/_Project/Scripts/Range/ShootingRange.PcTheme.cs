@@ -142,7 +142,6 @@ public partial class ShootingRange
         PcRangeText(tips,"TipsTitle","DICAS DE TESTE",18,12,446,34,23,new Color(1f,0.75f,0.30f));
         PcRangeText(tips,"Tips","• Compare armas trocando o sobrevivente.\n• Equipe itens pela mochila.\n• Veja o DPS medido em tempo real.\n• Varie distância e resistência do alvo.\n• A formação de teste não muda a campanha.",18,55,446,148,19,new Color(0.70f,0.79f,0.82f),true);
         PcRangeButton(tips,"Inventory","MOCHILA [I]","panel",16,222,216,46,()=>{var toggle=PanelToggle.Instance;if(toggle)toggle.Toggle();});
-        PcRangeButton(tips,"Shock","EMPURRAR [ESPAÇO]","panel",246,222,220,46,PcRangeShock);
         RefreshPcRangeButtons();HidePcLegacyRangeHud();layout.Apply();
     }
     static void MovePcRange(Transform root,string name,float x,float y,float w,float h)

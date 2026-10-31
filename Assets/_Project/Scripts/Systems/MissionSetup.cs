@@ -245,6 +245,8 @@ public class MissionSetup : MonoBehaviour
         // Offensive posture is opt-in and never installed in DPS training.
         if (!GameSession.IsRange && GetComponent<SquadCombatPosture>() == null)
             gameObject.AddComponent<SquadCombatPosture>();
+        if (!GameSession.IsRange && GetComponent<HudPolish>() == null)
+            gameObject.AddComponent<HudPolish>();
         if (!GameSession.IsRange && squadSize > 1 && GetComponent<SquadFormationSwap>() == null)
             gameObject.AddComponent<SquadFormationSwap>();
     }

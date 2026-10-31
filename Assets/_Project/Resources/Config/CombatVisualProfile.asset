@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbf2945d06a8458c821d82e1ec97c8d4, type: 3}
+  m_Name: CombatVisualProfile
+  m_EditorClassIdentifier:
+  gradeCharacters: 1
+  heroTint: {r: 0.94, g: 0.88, b: 0.82, a: 1}
+  zombieTint: {r: 0.92, g: 0.86, b: 0.82, a: 1}
+  alwaysShowShadows: 1
+  shadowOpacityMult: 1.45
+  shadowByHeight: 1
+  shadowWidthPerHeight: 0.62
+  shadowAspectMult: 1.2
+  spreadZombieLane: 1
+  laneSpreadY: 0.3
+  polishRain: 1
+  rainSplashes: 1
+  rainSplashCount: 22

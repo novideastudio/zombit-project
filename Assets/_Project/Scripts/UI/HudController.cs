@@ -46,7 +46,7 @@ public class HudController : MonoBehaviour
 
     // ---- medidas (resolucao de referencia 1920x1080) ----
     const float Margin = 16f;
-    const float CardW = 340f, CardH = 136f, CardGap = 12f;
+    const float CardW = 420f, CardH = 136f, CardGap = 12f;
     const float ShockW = 240f;
     const float RefWidth = 1920f;      // largura de referencia do CanvasScaler
     const float BackpackSize = 92f;
@@ -174,6 +174,48 @@ public class HudController : MonoBehaviour
         return HeroSquad.Members;
     }
 
+    // ---------- squad card portraits ----------
+    const float CardPortraitShift = 80f;
+
+    SquadCard AddCardPortrait(SquadCard card, SurvivorDef def)
+    {
+        if (card == null || card.root == null) return card;
+        var root = card.root;
+        for (int i = 0; i < root.childCount; i++)
+        {
+            var child = root.GetChild(i) as RectTransform;
+            if (child == null || child.name == "AccentLine") continue;
+            if (child.anchorMin.x == child.anchorMax.x) child.anchoredPosition += new Vector2(CardPortraitShift, 0f);
+            else child.offsetMin += new Vector2(CardPortraitShift, 0f);
+        }
+        root.sizeDelta = new Vector2(root.sizeDelta.x + CardPortraitShift, root.sizeDelta.y);
+
+        Sprite sprite = null;
+        if (def != null)
+        {
+            sprite = def.portrait != null ? def.portrait : ArtLoader.Get("Art/Characters/" + def.id + "_portrait");
+            if (sprite == null) sprite = ArtLoader.Get("Art/Characters/" + def.id + "_card");
+        }
+        var frame = UIFactory.Img(root, new Color(0.03f, 0.06f, 0.08f, 1f), "HudPortraitFrame");
+        var fr = frame.rectTransform;
+        fr.anchorMin = fr.anchorMax = fr.pivot = new Vector2(0f, 1f);
+        fr.anchoredPosition = new Vector2(10f, -29f);
+        fr.sizeDelta = new Vector2(70f, 70f);
+        frame.raycastTarget = false;
+
+        var portrait = UIFactory.Img(frame.transform, Color.white, "HudPortrait");
+        var pr = portrait.rectTransform;
+        pr.anchorMin = Vector2.zero;
+        pr.anchorMax = Vector2.one;
+        pr.offsetMin = new Vector2(3f, 3f);
+        pr.offsetMax = new Vector2(-3f, -3f);
+        portrait.sprite = sprite;
+        portrait.preserveAspect = true;
+        portrait.raycastTarget = false;
+        portrait.color = sprite != null ? Color.white : (def != null ? new Color(def.color.r, def.color.g, def.color.b, 1f) : Color.gray);
+        return card;
+    }
+
     // ---------- construcao ----------
     void BuildHud()
     {
@@ -184,7 +226,7 @@ public class HudController : MonoBehaviour
         BuildWavePlate();
         BuildAccountPlate();
         BuildBackButton();
-        BuildShockPlate();
+        if (ActiveSkills.ShockWaveEnabled) BuildShockPlate();
         if (GameSession.IsRange && shockPlate != null) { shockPlate.anchorMin = shockPlate.anchorMax = new Vector2(1f, 0f); shockPlate.pivot = new Vector2(1f, 0f); shockPlate.anchoredPosition = new Vector2(-16f, 230f); }
         BuildSquadCards();
         BuildLowHpWarning();
@@ -415,13 +457,13 @@ public class HudController : MonoBehaviour
 
         int n = members.Count;
         // Zona dos cartoes: da margem esquerda ate antes do botao central (Empurrar).
-        float zoneRight = RefWidth * 0.5f - ShockW * 0.5f - 16f;
+        float zoneRight = RefWidth - 380f;
         float avail = zoneRight - Margin;
         float cardW = Mathf.Min(CardW, (avail - (n - 1) * CardGap) / n);
         for (int i = 0; i < n; i++)
         {
             float x = Margin + i * (cardW + CardGap);
-            cards.Add(BuildCard(i, n, members[i].ps, members[i].def, x, cardW));
+            cards.Add(AddCardPortrait(BuildCard(i, n, members[i].ps, members[i].def, x, cardW - CardPortraitShift), members[i].def));
         }
     }
 

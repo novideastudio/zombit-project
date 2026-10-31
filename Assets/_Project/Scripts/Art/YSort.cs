@@ -47,7 +47,7 @@ public class YSort : MonoBehaviour
     // Elipse escura nos pes. Fica logo ATRAS do personagem (order - 1), entao quem esta na frente cobre a sombra de quem esta atras.
     void UpdateShadow(float feetY)
     {
-        if (!contactShadow)
+        if (!contactShadow && !CombatVisuals.AlwaysShowShadows)
         {
             if (shadow != null) shadow.enabled = false;
             return;
@@ -57,8 +57,8 @@ public class YSort : MonoBehaviour
 
         float sx = Mathf.Abs(transform.lossyScale.x);
         var b = cachedSprite.bounds;
-        float width = Mathf.Max(0.25f, b.size.x * sx * shadowWidth);
-        float height = width * shadowAspect;
+        float width = CombatVisuals.ShadowWidth(cachedSprite, b.size.x * sx * shadowWidth, Mathf.Abs(transform.lossyScale.y));
+        float height = width * shadowAspect * CombatVisuals.ShadowAspectMult;
         float cx = transform.position.x + b.center.x * sx * (sr.flipX ? -1f : 1f);
 
         var t = shadow.transform;
@@ -67,7 +67,7 @@ public class YSort : MonoBehaviour
         shadow.enabled = sr.enabled;
         shadow.sortingLayerID = sr.sortingLayerID;
         shadow.sortingOrder = sr.sortingOrder - 1;
-        shadow.color = new Color(0f, 0f, 0f, shadowOpacity * sr.color.a);   // some junto com o personagem (morte/fade)
+        shadow.color = CombatVisuals.ShadowColor(shadowOpacity * CombatVisuals.ShadowOpacityMult * sr.color.a);   // some junto com o personagem (morte/fade)
     }
 
     void CreateShadow()

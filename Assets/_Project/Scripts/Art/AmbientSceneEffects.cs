@@ -160,6 +160,7 @@ public sealed class AmbientSceneEffects : MonoBehaviour
         CreateDust();
         indoor = profile != null && profile.id == "shopping";
         CreateRain();
+        CreateRainSplashes();
         ChooseWeather(true);
         if (enableLeaves) CreateLeaves();
         if (enableLightShafts) CreateLightShafts();
@@ -199,21 +200,104 @@ public sealed class AmbientSceneEffects : MonoBehaviour
         UpdateFog(t);
         UpdateWeather();
         UpdateRain();
+        UpdateRainSplashes();
         UpdateLeaves(t);
         UpdateShafts(t);
         UpdateBirds(t);
         UpdateLightning();
     }
 
+    // ---- Rain finish: ground splashes (visual only, no gameplay interaction) ----
+    sealed class RainSplash { public Transform tr; public SpriteRenderer sr; public float age, life, size; }
+    readonly List<RainSplash> rainSplashes = new List<RainSplash>();
+    Sprite rainSplashSprite;
+
+    Texture2D MakeRainSplashTexture()
+    {
+        const int width = 48, height = 16;
+        var tex = NewTexture(width, height, FilterMode.Bilinear);
+        var pixels = new Color[width * height];
+        for (int y = 0; y < height; y++)
+        for (int x = 0; x < width; x++)
+        {
+            float nx = (x + 0.5f) / width * 2f - 1f;
+            float ny = (y + 0.5f) / height * 2f - 1f;
+            float d = Mathf.Sqrt(nx * nx + ny * ny * 2.4f);
+            float ring = Mathf.Clamp01(1f - Mathf.Abs(d - 0.72f) / 0.18f);
+            float core = Mathf.Clamp01(1f - d / 0.28f) * 0.35f;
+            float a = Mathf.Clamp01(ring + core);
+            pixels[y * width + x] = new Color(0.82f, 0.90f, 0.96f, a * a);
+        }
+        tex.SetPixels(pixels);
+        tex.Apply(false, true);
+        return tex;
+    }
+
+    float RainSplashGroundY()
+    {
+        return GameTuning.Current.ZombieFeetY(Mathf.Max(1, HeroSquad.Count));
+    }
+
+    void ResetRainSplash(RainSplash s, bool initial)
+    {
+        s.life = Random.Range(0.22f, 0.42f);
+        s.age = initial ? Random.Range(0f, s.life) : 0f;
+        s.size = Random.Range(0.28f, 0.55f);
+        float x = Random.Range(sceneBounds.min.x + 0.3f, sceneBounds.max.x - 0.3f);
+        float y = RainSplashGroundY() + Random.Range(-0.55f, 0.35f);
+        s.tr.position = new Vector3(x, y, transform.position.z);
+        s.tr.localScale = new Vector3(s.size * 0.4f, s.size * 0.4f, 1f);
+        s.sr.color = new Color(1f, 1f, 1f, 0f);
+    }
+
+    void CreateRainSplashes()
+    {
+        if (!CombatVisuals.PolishRain || !CombatVisuals.RainSplashes || indoor || !enableRain) return;
+        rainSplashSprite = MakeSprite(MakeRainSplashTexture(), 48f);
+        int count = Mathf.Max(0, CombatVisuals.RainSplashCount);
+        for (int i = 0; i < count; i++)
+        {
+            var go = new GameObject("AmbientRainSplash");
+            spawnedObjects.Add(go);
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = rainSplashSprite;
+            sr.sortingOrder = RainOrder + 1;
+            var splash = new RainSplash { tr = go.transform, sr = sr };
+            rainSplashes.Add(splash);
+            ResetRainSplash(splash, true);
+        }
+    }
+
+    void UpdateRainSplashes()
+    {
+        if (rainSplashes.Count == 0) return;
+        int active = Mathf.CeilToInt(rainSplashes.Count * Mathf.Clamp01(rainLevel));
+        for (int i = 0; i < rainSplashes.Count; i++)
+        {
+            var s = rainSplashes[i];
+            if (s == null || s.tr == null || s.sr == null) continue;
+            bool on = i < active;
+            if (s.sr.enabled != on) { s.sr.enabled = on; if (on) ResetRainSplash(s, true); }
+            if (!on) continue;
+            s.age += Time.deltaTime;
+            if (s.age >= s.life) { ResetRainSplash(s, false); continue; }
+            float t = s.age / s.life;
+            float scale = s.size * (0.4f + 1.1f * t);
+            s.tr.localScale = new Vector3(scale, scale, 1f);
+            float alpha = Mathf.Pow(1f - t, 1.5f) * 0.42f * Mathf.Clamp01(rainLevel + 0.15f);
+            s.sr.color = new Color(1f, 1f, 1f, alpha);
+        }
+    }
+
     void CreateTextures()
     {
         glowSprite = MakeSprite(MakeGlowTexture(64), 32f);
         smokeSprite = MakeSprite(MakeSmokeTexture(32, 28), 32f);
-        rainSprite = MakeSprite(MakeRainTexture(), 80f);
+        rainSprite = MakeSprite(MakeRainTexture(), 200f);
         fogSprite = MakeSprite(MakeFogTexture(), 8f);
-        leafSpriteA = MakeSprite(MakeLeafTexture(0), 28f);
-        leafSpriteB = MakeSprite(MakeLeafTexture(1), 28f);
-        paperSprite = MakeSprite(MakeLeafTexture(2), 28f);
+        leafSpriteA = MakeSprite(MakeLeafTexture(0), 112f);
+        leafSpriteB = MakeSprite(MakeLeafTexture(1), 112f);
+        paperSprite = MakeSprite(MakeLeafTexture(2), 112f);
         shaftSprite = MakeSprite(MakeShaftTexture(), 32f, new Vector2(0.5f, 1f));
         birdUp = MakeSprite(MakeBirdTexture(true), 30f);
         birdDown = MakeSprite(MakeBirdTexture(false), 30f);
@@ -287,15 +371,21 @@ public sealed class AmbientSceneEffects : MonoBehaviour
     // Kept in the same runtime texture lifecycle as the other ambient sprites.
     Texture2D MakeRainTexture()
     {
-        const int width = 4, height = 16;
-        var tex = NewTexture(width, height, FilterMode.Point);
+        const int width = 8, height = 56;
+        var tex = NewTexture(width, height, FilterMode.Bilinear);
         var pixels = new Color[width * height];
         for (int y = 0; y < height; y++)
         {
-            float a = y < 2 || y > 13 ? 0.22f : (y > 5 && y < 11 ? 0.78f : 0.55f);
-            pixels[y * width + 1] = new Color(0.67f, 0.80f, 0.91f, a);
-            if (y > 2 && y < 13)
-                pixels[y * width + 2] = new Color(0.82f, 0.90f, 0.96f, a * 0.48f);
+            float t = y / (float)(height - 1);
+            float taper = Mathf.Sin(t * Mathf.PI);
+            float head = 1f - t;   // the leading (lower) end is brighter, like motion blur
+            float alpha = Mathf.Pow(Mathf.Clamp01(taper), 0.8f) * (0.35f + 0.65f * head);
+            for (int x = 0; x < width; x++)
+            {
+                float nx = (x - (width - 1) * 0.5f) / ((width - 1) * 0.5f);
+                float core = Mathf.Exp(-nx * nx * 4f);
+                pixels[y * width + x] = new Color(0.80f, 0.89f, 0.96f, alpha * core * 0.9f);
+            }
         }
         tex.SetPixels(pixels);
         tex.Apply(false, true);
@@ -622,6 +712,8 @@ public sealed class AmbientSceneEffects : MonoBehaviour
             Vector3 p = d.transform.position;
             p.x += d.wind * gustWind * Time.deltaTime;
             p.y -= d.speed * (0.85f + 0.3f * rainLevel) * Time.deltaTime;
+            if (CombatVisuals.PolishRain)
+                d.transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(d.wind * gustWind, d.speed * (0.85f + 0.3f * rainLevel)) * Mathf.Rad2Deg);
             d.transform.position = p;
             if (p.y < sceneBounds.min.y - 0.25f || p.x < sceneBounds.min.x - 0.65f || p.x > sceneBounds.max.x + 0.65f)
                 ResetRain(d, false);
@@ -656,20 +748,42 @@ public sealed class AmbientSceneEffects : MonoBehaviour
     // ------------------------------------------------------------------------------------
     Texture2D MakeLeafTexture(int kind)
     {
-        int w = kind == 2 ? 6 : 8, h = kind == 2 ? 5 : (kind == 1 ? 8 : 5);
-        var tex = NewTexture(w, h, FilterMode.Point);
+        int w = kind == 2 ? 24 : 32, h = kind == 2 ? 20 : (kind == 1 ? 32 : 20);
+        var tex = NewTexture(w, h, FilterMode.Bilinear);
         var px = new Color[w * h];
         for (int y = 0; y < h; y++)
         for (int x = 0; x < w; x++)
         {
             float nx = (x + 0.5f) / w * 2f - 1f, ny = (y + 0.5f) / h * 2f - 1f;
-            bool on; float v = 1f;
-            if (kind == 0) { on = nx * nx + ny * ny * 2.6f < 0.95f; if (y == h / 2) v = 0.72f; }         // folha oval com nervura
-            else if (kind == 1) { on = Mathf.Abs(nx) + Mathf.Abs(ny) < 0.98f; if (x == w / 2 || x == w / 2 - 1) v = 0.78f; } // folha de losango
-            else { on = true; v = (x + y) % 3 == 0 ? 0.88f : 1f; }                                       // papel
-            px[y * w + x] = on ? new Color(v, v, v, 1f) : Color.clear;
+            float alpha = 0f, v = 1f;
+            if (kind == 0)
+            {
+                float profile = Mathf.Pow(Mathf.Clamp01(1f - nx * nx), 0.85f) * (nx > 0f ? 0.82f : 0.92f);
+                float edge = profile - Mathf.Abs(ny);
+                alpha = Mathf.Clamp01(edge * 6f);
+                v = 0.72f + 0.26f * (ny * 0.5f + 0.5f);
+                if (Mathf.Abs(ny) < 0.07f) v *= 0.68f;
+                else if (Mathf.Abs(Mathf.Sin((nx * 3.2f + Mathf.Abs(ny) * 3.6f) * Mathf.PI)) < 0.10f) v *= 0.84f;
+            }
+            else if (kind == 1)
+            {
+                float edge = 0.94f - (Mathf.Abs(nx) + Mathf.Abs(ny) * 0.92f + 0.10f * Mathf.Sin(ny * 8f));
+                alpha = Mathf.Clamp01(edge * 5f);
+                v = 0.74f + 0.24f * (nx * 0.5f + 0.5f);
+                if (Mathf.Abs(nx) < 0.06f || Mathf.Abs(Mathf.Abs(nx) - Mathf.Abs(ny) * 0.55f) < 0.045f) v *= 0.72f;
+            }
+            else
+            {
+                float edge = Mathf.Min(0.96f - Mathf.Abs(nx), 0.92f - Mathf.Abs(ny));
+                alpha = Mathf.Clamp01(edge * 8f);
+                v = 0.93f - 0.08f * (nx * 0.5f + 0.5f);
+                if (Mathf.Abs(ny - 0.20f) < 0.045f || Mathf.Abs(ny + 0.22f) < 0.045f) v *= 0.82f;
+                if (nx + ny > 0.62f) v = Mathf.Min(1f, v * 1.08f);
+            }
+            px[y * w + x] = new Color(v, v, v, alpha);
         }
-        tex.SetPixels(px); tex.Apply(false, true);
+        tex.SetPixels(px);
+        tex.Apply(false, true);
         return tex;
     }
 
