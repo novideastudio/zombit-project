@@ -2,83 +2,60 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>
-/// Applies an editable layout prefab to a screen that is still assembled by the existing
-/// gameplay/UI code. Objects are matched by hierarchy and name, so dynamic callbacks and
-/// save-dependent values remain owned by their original systems.
-/// </summary>
+// Layout overlay only; gameplay, callbacks and dynamic data remain in runtime code.
 public static class UILayoutPrefabApplier
 {
     public const string ResourcesFolder = "UI/Screens/Layout_";
-
-    /// <summary>Used by the Editor baker so a re-bake always captures the original code layout.</summary>
     public static bool SuppressApply { get; set; }
 
     public static bool HasLayout(string key)
     {
-        // O mapa foi reformulado no runtime com cartoes ilustrados e âncoras responsivas.
-        // O Layout_map.prefab antigo permanece no projeto como referencia, mas nao controla essa tela.
         if (key == "map" || key == "mapSkills") return false;
         return !SuppressApply && !string.IsNullOrEmpty(key) && UITheme.Current.useEditorUI &&
-               Resources.Load<GameObject>(ResourcesFolder + key) != null;
+            Resources.Load<GameObject>(ResourcesFolder + key) != null;
     }
 
     public static bool Apply(RectTransform runtimeScreen, string key)
     {
         if (SuppressApply || runtimeScreen == null || string.IsNullOrEmpty(key) || !UITheme.Current.useEditorUI)
             return false;
-
-        GameObject prefab = Resources.Load<GameObject>(ResourcesFolder + key);
+        var prefab = Resources.Load<GameObject>(ResourcesFolder + key);
         if (prefab == null) return false;
-
-        // Layout_map antigo (feito antes do hub sem cabecalho): nao aplicar, senao as ancoras velhas
-        // desmontam a tela. Para voltar a editar pelo prefab: apague Layout_map.prefab e rode
-        // ZomBit > UI > 3 - Gerar layouts editaveis (so gera os que faltam).
         if (key == "map" && EditorUiBinding.FindDeep(prefab.transform, "HubProfile") == null)
         {
-            Debug.LogWarning("[ZomBit UI] Layout_map desatualizado (hub novo). Usando o layout do codigo. Apague Layout_map.prefab e rode ZomBit > UI > 3 para regerar.");
+            Debug.LogWarning("[ZomBit UI] Layout_map desatualizado; usando layout do codigo.");
             return false;
         }
-
         ApplyNode(prefab.transform, runtimeScreen, true, key);
         return true;
     }
 
-    // No layout do mapa, estas pecas repetidas vem de prefabs-modelo proprios (Node_Location, Tile_Hub, Cell_Equip).
-    // As copias "fotografadas" dentro do Layout_map NAO podem sobrescrever o modelo, senao editar o modelo nao tem efeito.
-    static bool OwnedByTemplate(string key, string childName)
+    static bool OwnedByTemplate(string key, string name)
     {
-        if (key != "map") return false;
-        return childName.StartsWith("Node_") || childName.StartsWith("Enemy_") || childName.StartsWith("EquipSlot_");
+        return key == "map" && (name.StartsWith("Node_") || name.StartsWith("Enemy_") || name.StartsWith("EquipSlot_"));
     }
 
     static void ApplyNode(Transform source, Transform target, bool isRoot, string key)
     {
         if (source == null || target == null) return;
-
         var flags = source.GetComponent<UIPrefabLayoutOverride>();
         if (flags != null)
         {
-            // A raiz do layout e so o Canvas de preview do Editor (escala/ancoras/tamanho 0): nunca copiar para a tela real.
             if (!isRoot) ApplyRectTransform(source as RectTransform, target as RectTransform, flags);
             ApplyImage(source.GetComponent<Image>(), target.GetComponent<Image>(), flags);
             ApplyText(source.GetComponent<TMP_Text>(), target.GetComponent<TMP_Text>(), flags);
             ApplyButton(source.GetComponent<Button>(), target.GetComponent<Button>(), flags);
             if (flags.overrideLayoutComponents) ApplyLayoutComponents(source, target);
         }
-
-        // Match children by name and occurrence within the same parent. This supports repeated
-        // generic names such as "Label" without accidentally binding to a label in another card.
         for (int i = 0; i < source.childCount; i++)
         {
-            Transform sourceChild = source.GetChild(i);
-            if (OwnedByTemplate(key, sourceChild.name)) continue;
+            var child = source.GetChild(i);
+            if (OwnedByTemplate(key, child.name)) continue;
             int occurrence = 0;
             for (int j = 0; j < i; j++)
-                if (source.GetChild(j).name == sourceChild.name) occurrence++;
-
-            Transform targetChild = FindChildOccurrence(target, sourceChild.name, occurrence);
-            if (targetChild != null) ApplyNode(sourceChild, targetChild, false, key);
+                if (source.GetChild(j).name == child.name) occurrence++;
+            var match = FindChildOccurrence(target, child.name, occurrence);
+            if (match != null) ApplyNode(child, match, false, key);
         }
     }
 
@@ -88,208 +65,181 @@ public static class UILayoutPrefabApplier
         int found = 0;
         for (int i = 0; i < parent.childCount; i++)
         {
-            Transform child = parent.GetChild(i);
+            var child = parent.GetChild(i);
             if (child.name != name) continue;
-            if (found == occurrence) return child;
-            found++;
+            if (found++ == occurrence) return child;
         }
         return null;
     }
 
-    static void ApplyRectTransform(RectTransform source, RectTransform target, UIPrefabLayoutOverride flags)
+    static void ApplyRectTransform(RectTransform s, RectTransform t, UIPrefabLayoutOverride f)
     {
-        if (source == null || target == null) return;
-        if (flags.overrideAnchorsAndPosition)
+        if (s == null || t == null) return;
+        if (f.overrideAnchorsAndPosition)
         {
-            target.anchorMin = source.anchorMin;
-            target.anchorMax = source.anchorMax;
-            target.anchoredPosition3D = source.anchoredPosition3D;
+            t.anchorMin = s.anchorMin;
+            t.anchorMax = s.anchorMax;
+            t.anchoredPosition3D = s.anchoredPosition3D;
         }
-        if (flags.overrideSize) target.sizeDelta = source.sizeDelta;
-        if (flags.overridePivot) target.pivot = source.pivot;
-        if (flags.overrideScaleAndRotation)
+        if (f.overrideSize) t.sizeDelta = s.sizeDelta;
+        if (f.overridePivot) t.pivot = s.pivot;
+        if (f.overrideScaleAndRotation)
         {
-            target.localScale = source.localScale;
-            target.localRotation = source.localRotation;
+            t.localScale = s.localScale;
+            t.localRotation = s.localRotation;
         }
     }
 
-    static void ApplyImage(Image source, Image target, UIPrefabLayoutOverride flags)
+    static void ApplyImage(Image s, Image t, UIPrefabLayoutOverride f)
     {
-        if (source == null || target == null) return;
-        // If the runtime builder selected a different sprite, this is likely a character/item/status
-        // image. Keep the game-selected asset instead of freezing the preview asset from the prefab.
-        bool spriteStillAtBakedValue = target.sprite == flags.bakedImageSprite;
-        if (flags.overrideImageSprite && spriteStillAtBakedValue)
+        if (s == null || t == null) return;
+        if (f.overrideImageSprite && t.sprite == f.bakedImageSprite)
         {
-            target.sprite = source.sprite;
-            target.type = source.type;
-            target.preserveAspect = source.preserveAspect;
-            target.fillCenter = source.fillCenter;
-            target.fillMethod = source.fillMethod;
-            target.fillOrigin = source.fillOrigin;
-            target.fillAmount = source.fillAmount;
-            target.pixelsPerUnitMultiplier = source.pixelsPerUnitMultiplier;
-            target.useSpriteMesh = source.useSpriteMesh;
+            t.sprite = s.sprite;
+            t.type = s.type;
+            t.preserveAspect = s.preserveAspect;
+            t.fillCenter = s.fillCenter;
+            t.fillMethod = s.fillMethod;
+            t.fillOrigin = s.fillOrigin;
+            t.fillAmount = s.fillAmount;
+            t.pixelsPerUnitMultiplier = s.pixelsPerUnitMultiplier;
+            t.useSpriteMesh = s.useSpriteMesh;
         }
-        if (flags.overrideImageColor && target.color == flags.bakedImageColor) target.color = source.color;
+        if (f.overrideImageColor && t.color == f.bakedImageColor) t.color = s.color;
     }
 
-    static void ApplyText(TMP_Text source, TMP_Text target, UIPrefabLayoutOverride flags)
+    static void ApplyText(TMP_Text s, TMP_Text t, UIPrefabLayoutOverride f)
     {
-        if (source == null || target == null) return;
-        // Text written by the runtime builder usually represents save/game data. Preserve it when
-        // it differs from the original bake, but allow edited prefab text for fixed labels.
-        if (flags.overrideTextContent && string.Equals(target.text, flags.bakedTextContent, System.StringComparison.Ordinal))
-            target.text = source.text;
-        if (flags.overrideTextColor && target.color == flags.bakedTextColor) target.color = source.color;
-        if (!flags.overrideTextStyle) return;
-
-        if (source.font != null) target.font = source.font;
-        target.fontSize = source.fontSize;
-        target.fontStyle = source.fontStyle;
-        target.alignment = source.alignment;
-        target.enableAutoSizing = source.enableAutoSizing;
-        target.fontSizeMin = source.fontSizeMin;
-        target.fontSizeMax = source.fontSizeMax;
-        target.textWrappingMode = source.textWrappingMode;
-        target.overflowMode = source.overflowMode;
-        target.margin = source.margin;
-        target.characterSpacing = source.characterSpacing;
-        target.wordSpacing = source.wordSpacing;
-        target.lineSpacing = source.lineSpacing;
-        target.paragraphSpacing = source.paragraphSpacing;
-        target.richText = source.richText;
-        target.extraPadding = source.extraPadding;
-        target.raycastTarget = source.raycastTarget;
-        target.maskable = source.maskable;
+        if (s == null || t == null) return;
+        if (f.overrideTextContent && string.Equals(t.text, f.bakedTextContent, System.StringComparison.Ordinal))
+            t.text = s.text;
+        if (f.overrideTextColor && t.color == f.bakedTextColor) t.color = s.color;
+        if (!f.overrideTextStyle) return;
+        if (s.font != null) t.font = s.font;
+        t.fontSize = s.fontSize;
+        t.fontStyle = s.fontStyle;
+        t.alignment = s.alignment;
+        t.enableAutoSizing = s.enableAutoSizing;
+        t.fontSizeMin = s.fontSizeMin;
+        t.fontSizeMax = s.fontSizeMax;
+        t.textWrappingMode = s.textWrappingMode;
+        t.overflowMode = s.overflowMode;
+        t.margin = s.margin;
+        t.characterSpacing = s.characterSpacing;
+        t.wordSpacing = s.wordSpacing;
+        t.lineSpacing = s.lineSpacing;
+        t.paragraphSpacing = s.paragraphSpacing;
+        t.richText = s.richText;
+        t.extraPadding = s.extraPadding;
+        t.raycastTarget = s.raycastTarget;
+        t.maskable = s.maskable;
     }
 
-    static void ApplyButton(Button source, Button target, UIPrefabLayoutOverride flags)
+    static void ApplyButton(Button s, Button t, UIPrefabLayoutOverride f)
     {
-        if (source == null || target == null) return;
-        if (flags.overrideButtonColors && ColorsMatch(target.colors, flags.bakedButtonColors)) target.colors = source.colors;
-        if (flags.overrideButtonTransition)
+        if (s == null || t == null) return;
+        if (f.overrideButtonColors && ColorsMatch(t.colors, f.bakedButtonColors)) t.colors = s.colors;
+        if (!f.overrideButtonTransition) return;
+        t.transition = s.transition;
+        t.spriteState = s.spriteState;
+        t.navigation = s.navigation;
+        if (s.animationTriggers != null && t.animationTriggers != null)
         {
-            target.transition = source.transition;
-            target.spriteState = source.spriteState;
-            target.navigation = source.navigation;
-            if (source.animationTriggers != null && target.animationTriggers != null)
-            {
-                target.animationTriggers.normalTrigger = source.animationTriggers.normalTrigger;
-                target.animationTriggers.highlightedTrigger = source.animationTriggers.highlightedTrigger;
-                target.animationTriggers.pressedTrigger = source.animationTriggers.pressedTrigger;
-                target.animationTriggers.selectedTrigger = source.animationTriggers.selectedTrigger;
-                target.animationTriggers.disabledTrigger = source.animationTriggers.disabledTrigger;
-            }
+            t.animationTriggers.normalTrigger = s.animationTriggers.normalTrigger;
+            t.animationTriggers.highlightedTrigger = s.animationTriggers.highlightedTrigger;
+            t.animationTriggers.pressedTrigger = s.animationTriggers.pressedTrigger;
+            t.animationTriggers.selectedTrigger = s.animationTriggers.selectedTrigger;
+            t.animationTriggers.disabledTrigger = s.animationTriggers.disabledTrigger;
         }
     }
 
     static bool ColorsMatch(ColorBlock a, ColorBlock b)
     {
         return a.normalColor == b.normalColor && a.highlightedColor == b.highlightedColor &&
-               a.pressedColor == b.pressedColor && a.selectedColor == b.selectedColor &&
-               a.disabledColor == b.disabledColor && Mathf.Approximately(a.colorMultiplier, b.colorMultiplier) &&
-               Mathf.Approximately(a.fadeDuration, b.fadeDuration);
+            a.pressedColor == b.pressedColor && a.selectedColor == b.selectedColor &&
+            a.disabledColor == b.disabledColor && Mathf.Approximately(a.colorMultiplier, b.colorMultiplier) &&
+            Mathf.Approximately(a.fadeDuration, b.fadeDuration);
     }
 
-    static void ApplyLayoutComponents(Transform source, Transform target)
+    static void ApplyLayoutComponents(Transform s, Transform t)
     {
-        var sourceElement = source.GetComponent<LayoutElement>();
-        if (sourceElement != null)
+        var se = s.GetComponent<LayoutElement>();
+        if (se != null)
         {
-            var element = target.GetComponent<LayoutElement>();
-            if (element == null) element = target.gameObject.AddComponent<LayoutElement>();
-            element.ignoreLayout = sourceElement.ignoreLayout;
-            element.minWidth = sourceElement.minWidth;
-            element.minHeight = sourceElement.minHeight;
-            element.preferredWidth = sourceElement.preferredWidth;
-            element.preferredHeight = sourceElement.preferredHeight;
-            element.flexibleWidth = sourceElement.flexibleWidth;
-            element.flexibleHeight = sourceElement.flexibleHeight;
-            element.layoutPriority = sourceElement.layoutPriority;
+            var te = t.GetComponent<LayoutElement>();
+            if (te == null) te = t.gameObject.AddComponent<LayoutElement>();
+            te.ignoreLayout = se.ignoreLayout;
+            te.minWidth = se.minWidth; te.minHeight = se.minHeight;
+            te.preferredWidth = se.preferredWidth; te.preferredHeight = se.preferredHeight;
+            te.flexibleWidth = se.flexibleWidth; te.flexibleHeight = se.flexibleHeight;
+            te.layoutPriority = se.layoutPriority;
         }
-
-        var sourceHorizontal = source.GetComponent<HorizontalLayoutGroup>();
-        var targetHorizontal = target.GetComponent<HorizontalLayoutGroup>();
-        if (sourceHorizontal != null)
+        var sh = s.GetComponent<HorizontalLayoutGroup>();
+        var th = t.GetComponent<HorizontalLayoutGroup>();
+        if (sh != null)
         {
-            if (targetHorizontal == null && target.GetComponent<VerticalLayoutGroup>() == null && target.GetComponent<GridLayoutGroup>() == null)
-                targetHorizontal = target.gameObject.AddComponent<HorizontalLayoutGroup>();
-            if (targetHorizontal != null) CopyHorizontalOrVertical(sourceHorizontal, targetHorizontal);
+            if (th == null && t.GetComponent<VerticalLayoutGroup>() == null && t.GetComponent<GridLayoutGroup>() == null)
+                th = t.gameObject.AddComponent<HorizontalLayoutGroup>();
+            if (th != null) CopyHorizontalOrVertical(sh, th);
         }
-
-        var sourceVertical = source.GetComponent<VerticalLayoutGroup>();
-        var targetVertical = target.GetComponent<VerticalLayoutGroup>();
-        if (sourceVertical != null)
+        var sv = s.GetComponent<VerticalLayoutGroup>();
+        var tv = t.GetComponent<VerticalLayoutGroup>();
+        if (sv != null)
         {
-            if (targetVertical == null && target.GetComponent<HorizontalLayoutGroup>() == null && target.GetComponent<GridLayoutGroup>() == null)
-                targetVertical = target.gameObject.AddComponent<VerticalLayoutGroup>();
-            if (targetVertical != null) CopyHorizontalOrVertical(sourceVertical, targetVertical);
+            if (tv == null && t.GetComponent<HorizontalLayoutGroup>() == null && t.GetComponent<GridLayoutGroup>() == null)
+                tv = t.gameObject.AddComponent<VerticalLayoutGroup>();
+            if (tv != null) CopyHorizontalOrVertical(sv, tv);
         }
-
-        var sourceGrid = source.GetComponent<GridLayoutGroup>();
-        var targetGrid = target.GetComponent<GridLayoutGroup>();
-        if (sourceGrid != null)
+        var sg = s.GetComponent<GridLayoutGroup>();
+        var tg = t.GetComponent<GridLayoutGroup>();
+        if (sg != null)
         {
-            if (targetGrid == null && target.GetComponent<HorizontalLayoutGroup>() == null && target.GetComponent<VerticalLayoutGroup>() == null)
-                targetGrid = target.gameObject.AddComponent<GridLayoutGroup>();
-            if (targetGrid != null)
+            if (tg == null && t.GetComponent<HorizontalLayoutGroup>() == null && t.GetComponent<VerticalLayoutGroup>() == null)
+                tg = t.gameObject.AddComponent<GridLayoutGroup>();
+            if (tg != null)
             {
-                CopyLayoutGroup(sourceGrid, targetGrid);
-                targetGrid.startCorner = sourceGrid.startCorner;
-                targetGrid.startAxis = sourceGrid.startAxis;
-                targetGrid.cellSize = sourceGrid.cellSize;
-                targetGrid.spacing = sourceGrid.spacing;
-                targetGrid.constraint = sourceGrid.constraint;
-                targetGrid.constraintCount = sourceGrid.constraintCount;
+                CopyLayoutGroup(sg, tg);
+                tg.startCorner = sg.startCorner; tg.startAxis = sg.startAxis;
+                tg.cellSize = sg.cellSize; tg.spacing = sg.spacing;
+                tg.constraint = sg.constraint; tg.constraintCount = sg.constraintCount;
             }
         }
-
-        var sourceFitter = source.GetComponent<ContentSizeFitter>();
-        if (sourceFitter != null)
+        var sf = s.GetComponent<ContentSizeFitter>();
+        if (sf != null)
         {
-            var fitter = target.GetComponent<ContentSizeFitter>();
-            if (fitter == null) fitter = target.gameObject.AddComponent<ContentSizeFitter>();
-            fitter.horizontalFit = sourceFitter.horizontalFit;
-            fitter.verticalFit = sourceFitter.verticalFit;
+            var tf = t.GetComponent<ContentSizeFitter>();
+            if (tf == null) tf = t.gameObject.AddComponent<ContentSizeFitter>();
+            tf.horizontalFit = sf.horizontalFit; tf.verticalFit = sf.verticalFit;
         }
-
-        var sourceAspect = source.GetComponent<AspectRatioFitter>();
-        if (sourceAspect != null)
+        var sa = s.GetComponent<AspectRatioFitter>();
+        if (sa != null)
         {
-            var aspect = target.GetComponent<AspectRatioFitter>();
-            if (aspect == null) aspect = target.gameObject.AddComponent<AspectRatioFitter>();
-            aspect.aspectMode = sourceAspect.aspectMode;
-            aspect.aspectRatio = sourceAspect.aspectRatio;
+            var ta = t.GetComponent<AspectRatioFitter>();
+            if (ta == null) ta = t.gameObject.AddComponent<AspectRatioFitter>();
+            ta.aspectMode = sa.aspectMode; ta.aspectRatio = sa.aspectRatio;
         }
-
-        var sourceCanvasGroup = source.GetComponent<CanvasGroup>();
-        if (sourceCanvasGroup != null)
+        var sc = s.GetComponent<CanvasGroup>();
+        if (sc != null)
         {
-            var group = target.GetComponent<CanvasGroup>();
-            if (group == null) group = target.gameObject.AddComponent<CanvasGroup>();
-            group.alpha = sourceCanvasGroup.alpha;
-            group.interactable = sourceCanvasGroup.interactable;
-            group.blocksRaycasts = sourceCanvasGroup.blocksRaycasts;
-            group.ignoreParentGroups = sourceCanvasGroup.ignoreParentGroups;
+            var tc = t.GetComponent<CanvasGroup>();
+            if (tc == null) tc = t.gameObject.AddComponent<CanvasGroup>();
+            tc.alpha = sc.alpha; tc.interactable = sc.interactable;
+            tc.blocksRaycasts = sc.blocksRaycasts; tc.ignoreParentGroups = sc.ignoreParentGroups;
         }
     }
 
-    static void CopyHorizontalOrVertical(HorizontalOrVerticalLayoutGroup source, HorizontalOrVerticalLayoutGroup target)
+    static void CopyHorizontalOrVertical(HorizontalOrVerticalLayoutGroup s, HorizontalOrVerticalLayoutGroup t)
     {
-        CopyLayoutGroup(source, target);
-        target.spacing = source.spacing;
-        target.childControlWidth = source.childControlWidth;
-        target.childControlHeight = source.childControlHeight;
-        target.childForceExpandWidth = source.childForceExpandWidth;
-        target.childForceExpandHeight = source.childForceExpandHeight;
-        target.reverseArrangement = source.reverseArrangement;
+        CopyLayoutGroup(s, t);
+        t.spacing = s.spacing;
+        t.childControlWidth = s.childControlWidth; t.childControlHeight = s.childControlHeight;
+        t.childForceExpandWidth = s.childForceExpandWidth; t.childForceExpandHeight = s.childForceExpandHeight;
+        t.reverseArrangement = s.reverseArrangement;
     }
 
-    static void CopyLayoutGroup(LayoutGroup source, LayoutGroup target)
+    static void CopyLayoutGroup(LayoutGroup s, LayoutGroup t)
     {
-        target.padding = new RectOffset(source.padding.left, source.padding.right, source.padding.top, source.padding.bottom);
-        target.childAlignment = source.childAlignment;
+        t.padding = new RectOffset(s.padding.left, s.padding.right, s.padding.top, s.padding.bottom);
+        t.childAlignment = s.childAlignment;
     }
 }

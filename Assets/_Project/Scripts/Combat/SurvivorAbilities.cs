@@ -108,7 +108,7 @@ public class SurvivorAbilities : MonoBehaviour
     {
         grenadeInFlight = true;
         Vector3 start = transform.position + new Vector3(0.35f, 0.65f, -0.2f);
-        Vector3 end = target ? target.AimPoint : start + Vector3.right * 2f;
+        Vector3 end = LiveGrenadePoint(target, start + Vector3.right * 2f);
         end.z = start.z;
 
         GameObject grenade = new GameObject("Grenade_Thrown");
@@ -127,6 +127,9 @@ public class SurvivorAbilities : MonoBehaviour
         {
             elapsed += Time.deltaTime;
             float t = Mathf.Clamp01(elapsed / flightTime);
+            // Segue o alvo (ou o cluster mais denso, se ele cair no ar) ate o impacto.
+            end = LiveGrenadePoint(target, end);
+            end.z = start.z;
             Vector3 p = Vector3.Lerp(start, end, t);
             p.y += Mathf.Sin(t * Mathf.PI) * 1.05f;
             grenade.transform.position = p;
@@ -136,9 +139,10 @@ public class SurvivorAbilities : MonoBehaviour
         }
 
         if (grenade) Destroy(grenade);
-        // Impact point is the street/feet plane, not the target's upper body.
-        Vector3 blastPoint = end;
+        // Impacto no chao sob o alvo/cluster atuais, nao no ponto capturado no arremesso.
+        Vector3 blastPoint = LiveGrenadePoint(target, end);
         blastPoint.y -= 0.35f;
+        blastPoint.z = start.z;
         float radius = GrenadeBaseRadius * (1f + bonuses.grenadeRadiusPercent);
         // Dano base (bonus fixo) x poder de habilidade x dano percentual do heroi (arvore + afixos), como a torreta.
         float percent = hero ? hero.damageMult * (1f + hero.affixDamage) : 1f;
@@ -151,6 +155,36 @@ public class SurvivorAbilities : MonoBehaviour
         }
         PixelCombatVFX.Explosion(blastPoint, radius);
         grenadeInFlight = false;
+    }
+
+    Vector3 LiveGrenadePoint(Enemy target, Vector3 fallback)
+    {
+        if (target != null && !target.IsDead) return target.AimPoint;
+        return DensestClusterPoint(fallback);
+    }
+
+    static Vector3 DensestClusterPoint(Vector3 fallback)
+    {
+        int n = Enemy.Alive.Count;
+        if (n <= 0) return fallback;
+        float radiusSq = GrenadeBaseRadius * GrenadeBaseRadius;
+        Enemy best = null;
+        int bestCount = -1;
+        for (int i = 0; i < n; i++)
+        {
+            var e = Enemy.Alive[i];
+            if (!e || e.IsDead) continue;
+            Vector3 a = e.AimPoint;
+            int count = 0;
+            for (int j = 0; j < n; j++)
+            {
+                var o = Enemy.Alive[j];
+                if (!o || o.IsDead) continue;
+                if ((o.AimPoint - a).sqrMagnitude <= radiusSq) count++;
+            }
+            if (count > bestCount) { bestCount = count; best = e; }
+        }
+        return best != null ? best.AimPoint : fallback;
     }
 
     // Cache estatico: antes cada lancamento criava uma Texture2D + Sprite novos e

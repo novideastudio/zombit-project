@@ -423,7 +423,7 @@ public class HudController : MonoBehaviour
 
         var key = UIKit.Frame(shockPlate, "HudShockKey", new Color(0.05f, 0.10f, 0.12f, 1f), UIKit.Col.Cyan, 1.5f);
         Put(key, shockPlate, 16f, 12f, 82f, 22f);
-        var kt = UIFactory.Txt(key, "ESPAÇO", 11f, TextAlignmentOptions.Center, UIKit.Col.Cyan, "Label");
+        var kt = UIFactory.Txt(key, "TOQUE", 11f, TextAlignmentOptions.Center, UIKit.Col.Cyan, "Label");
         kt.fontStyle = FontStyles.Bold; kt.raycastTarget = false;
         UIFactory.Stretch(kt.rectTransform);
         Label(shockPlate, "EMPURRAR ZUMBI", 15f, Color.white, "HudShockTitle", 16f, 42f, ShockW - 32f, 22f);
@@ -651,7 +651,7 @@ public class HudController : MonoBehaviour
         {
             lastShockKey = remain;
             if (remain < 0) { shockStatus.text = "INDISPONÍVEL"; shockStatus.color = HudDim; }
-            else if (remain == 0) { shockStatus.text = "PRONTA  ·  USE ESPAÇO"; shockStatus.color = ReadyColor; }
+            else if (remain == 0) { shockStatus.text = "PRONTA  ·  TOQUE / ESPAÇO"; shockStatus.color = ReadyColor; }
             else { shockStatus.text = $"RECARGA {remain}s"; shockStatus.color = CooldownColor; }
         }
         float ratio = a != null ? a.ShockReadyRatio : 0f;

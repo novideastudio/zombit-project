@@ -72,7 +72,7 @@ public sealed class SquadSkillsOverlay : MonoBehaviour
         string cd = active != null ? $"{active.shockCooldown:0}s" : "14s";
         string gold = ColorUtility.ToHtmlStringRGB(UIKit.Col.Gold);
         var ct = Txt(cmd,
-            $"<color=#{gold}>[ESPAÇO]</color> Empurrar zumbi: empurra, atordoa e fere quem está perto (recarga {cd}). Também dá para clicar no botão do HUD.\n" +
+            $"<color=#{gold}>[ESPAÇO]</color> ou <color=#{gold}>[TOQUE]</color> no botão Empurrar: empurra, atordoa e fere quem está perto (recarga {cd}).\n" +
             $"<color=#{gold}>[CLIQUE]</color> no zumbi: todo o esquadrão foca nele    <color=#{gold}>[I]</color> Mochila    <color=#{gold}>[H]</color> Habilidades    <color=#{gold}>[ESC]</color> Pausa",
             17f, Color.white, TextAlignmentOptions.MidlineLeft);
         ct.fontStyle = FontStyles.Normal;

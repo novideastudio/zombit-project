@@ -3,8 +3,8 @@ guid: 07e71f8ca871605408a76e86a41f3b27
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -4580946436527578574
-    second: 0b73848c-34b2-4371-9c3e-3db8577f0275_0
+      213: 6117951617014565036
+    second: wave_ruins_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -112,7 +112,7 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
-    buildTarget: iOS
+    buildTarget: WebGL
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
@@ -125,11 +125,11 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
-    buildTarget: WebGL
-    maxTextureSize: 4096
+    buildTarget: iOS
+    maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 0
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -141,7 +141,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: 0b73848c-34b2-4371-9c3e-3db8577f0275_0
+      name: wave_ruins_0
       rect:
         serializedVersion: 2
         x: 0
@@ -156,8 +156,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 232aea3ac753d60c0800000000000000
-      internalID: -4580946436527578574
+      spriteID: ca80e25d49457e450800000000000000
+      internalID: 6117951617014565036
       vertices: []
       indices: 
       edges: []

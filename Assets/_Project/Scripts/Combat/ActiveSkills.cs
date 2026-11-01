@@ -11,8 +11,8 @@ using UnityEngine.InputSystem;
 /// </summary>
 public sealed class ActiveSkills : MonoBehaviour
 {
-    /// <summary>The shock wave is removed from gameplay. Focus-by-click remains available.</summary>
-    public static readonly bool ShockWaveEnabled = false;
+    /// <summary>Onda de choque ativa (tecla ESPACO e botao do HUD, inclusive no toque).</summary>
+    public static readonly bool ShockWaveEnabled = true;
     public float shockCooldown = 14f;
     public float shockRadius = 3.4f;
     public float shockKnockback = 2.4f;

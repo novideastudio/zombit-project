@@ -451,4 +451,31 @@ public sealed class PixelCombatVFX : MonoBehaviour
                 Vector3.one * Random.Range(0.28f, 0.5f), 2.2f, Random.Range(0.45f, 0.8f), v, 21470, 3.4f, 0f, 1.0f, 0.6f, Random.Range(-30f, 30f), false, 0.7f);
         }
     }
+
+    /// <summary>Carga do cuspidor: globo acido na boca, para o windup ser legivel.</summary>
+    public static void SpitCharge(Vector3 pos)
+    {
+        var self = Instance;
+        var blob = BlobSprite();
+        var glow = GlowSprite();
+        self.Burst(glow, pos, new Color(0.55f, 1f, 0.35f, 0.75f), new Color(0.32f, 0.82f, 0.18f, 0.4f), new Color(0.12f, 0.38f, 0.06f, 0f),
+            Vector3.one * 0.55f, 1.8f, 0.22f, Vector3.zero, 21610, 0f, 0f, 1.2f);
+        self.Burst(blob, pos + Vector3.up * 0.08f, new Color(0.62f, 1f, 0.32f), new Color(0.38f, 0.72f, 0.14f), new Color(0.16f, 0.34f, 0.06f),
+            Vector3.one * 0.16f, 1.7f, 0.28f, new Vector3(0f, 0.55f, 0f), 21620, 1.2f, -1.4f, 1f);
+    }
+
+    /// <summary>Impacto do cuspe no sobrevivente (ou no chao, se a formacao saiu da frente).</summary>
+    public static void SpitImpact(Vector3 pos)
+    {
+        var self = Instance;
+        ZombitAudio.PlayImpact(pos);
+        var blob = BlobSprite();
+        for (int i = 0; i < 6; i++)
+        {
+            var col = Random.value > 0.4f ? new Color(0.48f, 0.92f, 0.22f) : new Color(0.28f, 0.55f, 0.10f);
+            self.Create(blob, pos + (Vector3)(Random.insideUnitCircle * 0.14f), col,
+                Vector3.one * Random.Range(0.10f, 0.20f), Random.Range(0.22f, 0.4f),
+                (Vector3)(Random.insideUnitCircle.normalized * Random.Range(0.5f, 2.0f)), 20510);
+        }
+    }
 }

@@ -26,6 +26,7 @@ public class Enemy : MonoBehaviour
     public const int RunnerExtraAttackers = 2;       // Runner bate mesmo alem do limite da fila
     public const float SpitterDamageMult = 0.8f;
     public const float SpitterIntervalMult = 1.6f;
+    public const float SpitterWindup = 0.5f;
 
     // ---- Modificadores de elite ----
     public const float ArmoredHealthMult = 1.35f;
@@ -117,6 +118,8 @@ public class Enemy : MonoBehaviour
     YSort ySort;
     Health targetHealth;
     float nextAttack;
+    float spitWindupUntil;
+    float nextSpitChargeFx;
     bool dead;
     bool registered;
 
@@ -181,6 +184,8 @@ public class Enemy : MonoBehaviour
         kindReady = false;
         targetHealth = null;
         nextAttack = 0f;
+        spitWindupUntil = 0f;
+        nextSpitChargeFx = 0f;
         distToTarget = 0f; slotDistance = 0f; queueRank = 0;
         if (ySort == null) ySort = GetComponent<YSort>();
         if (ySort != null) ySort.sortBias = 0;
@@ -358,9 +363,10 @@ public class Enemy : MonoBehaviour
 
         if (mod == EliteMod.Regenerating && hp != null) hp.Heal(hp.max * RegenPerSecond * Time.deltaTime);
 
-        // Atordoado (empurrao): fica parado e nao ataca.
+        // Atordoado (empurrao): fica parado e nao ataca. Cancela o windup do cuspe.
         if (Time.time < stunUntil)
         {
+            spitWindupUntil = 0f;
             if (motion != null) motion.SetMoving(false);
             return;
         }
@@ -391,16 +397,35 @@ public class Enemy : MonoBehaviour
         bool spitter = kind == EnemyKind.Spitter;
         int limit = MaxAttackersPerSide + (kind == EnemyKind.Runner ? RunnerExtraAttackers : 0);
         bool inReach = (spitter || queueRank < limit) && Mathf.Abs(deltaX) <= slotDistance + 0.12f;
-        if (inReach && Time.time >= nextAttack)
+
+        if (spitter && spitWindupUntil > 0f)
+        {
+            if (Time.time >= spitWindupUntil)
+            {
+                spitWindupUntil = 0f;
+                LaunchSpit();
+            }
+            else if (Time.time >= nextSpitChargeFx)
+            {
+                nextSpitChargeFx = Time.time + 0.12f;
+                PixelCombatVFX.SpitCharge(aimPoint);
+            }
+        }
+        else if (inReach && Time.time >= nextAttack)
         {
             float interval = data.attackInterval * intervalMult * (spitter ? SpitterIntervalMult : 1f);
             nextAttack = Time.time + Mathf.Max(0.05f, interval);
-            if (targetHealth == null) targetHealth = target.GetComponent<Health>();
-            if (targetHealth != null)
+            if (spitter)
             {
-                float dmg = data.damage * DamageMult * damageBoost * FuryDamage * (spitter ? SpitterDamageMult : 1f);
-                targetHealth.Take(dmg);
-                if (spitter) PixelCombatVFX.Hit(target.position + Vector3.up * 1f, 6f);   // cuspe acertou
+                spitWindupUntil = Time.time + SpitterWindup;
+                nextSpitChargeFx = Time.time;
+                if (motion != null) motion.LevelGlow(new Color(0.55f, 1f, 0.32f), SpitterWindup);
+            }
+            else
+            {
+                if (targetHealth == null) targetHealth = target.GetComponent<Health>();
+                if (targetHealth != null)
+                    targetHealth.Take(data.damage * DamageMult * damageBoost * FuryDamage);
             }
         }
 
@@ -408,11 +433,24 @@ public class Enemy : MonoBehaviour
         if (ySort != null) ySort.sortBias = -Mathf.Min(queueRank, 60);
     }
 
+    void LaunchSpit()
+    {
+        if (target == null || TargetDown() || data == null) return;
+        if (targetHealth == null) targetHealth = target.GetComponent<Health>();
+        if (targetHealth == null) return;
+        float dmg = data.damage * DamageMult * damageBoost * FuryDamage * SpitterDamageMult;
+        Vector3 from = aimPoint;
+        Vector3 to = target.position + Vector3.up * 0.95f;
+        to.z = from.z;
+        SpitProjectile.Spawn(from, to, dmg, targetHealth);
+    }
+
     void OnDied()
     {
         if (isTrainingDummy) return;   // o TrainingDummy renasce sozinho; nao conta abate nem solta loot
         if (dead) return;
         dead = true;
+        spitWindupUntil = 0f;
 
         // Sai da lista imediatamente: projeteis deixam de acertar o cadaver e a wave termina na hora.
         if (registered) { Alive.Remove(this); registered = false; }
