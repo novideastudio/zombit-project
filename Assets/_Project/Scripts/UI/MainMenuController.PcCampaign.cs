@@ -131,12 +131,12 @@ public partial class MainMenuController
             var lockIcon=PcCampImage(b.transform,"DifficultyLock","lock",106,27,14,17,false);lockIcon.preserveAspect=true;
             pcCampaignDiffLocks.Add(lockIcon.gameObject);
         }
-        var rules=PcCampButton(panel.transform,"MissionRules","REGRAS DA MISSÃO","button",20,780,550,44,()=>{pcCampaignRules.SetActive(true);},18);
-        PcCampIcon(rules.transform,"info",14,10,24);
+        var rules=PcCampButton(panel.transform,"MissionRules","REGRAS DA MISSÃO","gold",20,772,269,62,()=>{pcCampaignRules.SetActive(true);},20);
+        PcCampIcon(rules.transform,"info",12,16,30);PcCampShiftLabel(rules,44f);
         // Formação fica como ícone dentro da barra para manter a composição da referência sem perder o recurso.
-        pcCampaignFormation=PcCampButton(panel.transform,"ChooseFormation","","button",520,784,38,36,OpenMissionFormation,12);
-        PcCampIcon(pcCampaignFormation.transform,"formation",7,6,24);
-        dStart=PcCampButton(panel.transform,"StartMission","INICIAR MISSÃO","red",20,840,550,88,OnStartMission,30);
+        pcCampaignFormation=PcCampButton(panel.transform,"ChooseFormation","FORMAÇÃO","gold",301,772,269,62,OpenMissionFormation,20);
+        PcCampIcon(pcCampaignFormation.transform,"formation",12,16,30);PcCampShiftLabel(pcCampaignFormation,44f);
+        dStart=PcCampButton(panel.transform,"StartMission","INICIAR MISSÃO","red",20,846,550,88,OnStartMission,30);
         PcCampIcon(dStart.transform,"arrow",485,28,30);
     }
     TMP_Text BuildPcCampaignStat(Transform parent,string name,float x,string iconPath)

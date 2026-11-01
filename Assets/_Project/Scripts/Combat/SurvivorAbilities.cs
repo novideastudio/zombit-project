@@ -66,7 +66,7 @@ public class SurvivorAbilities : MonoBehaviour
             turretHero.damageMult = hero.damageMult;
             turretHero.affixDamage = hero.affixDamage;
         }
-        if (def.utility == UtilityType.Grenade)
+        if (def.utility == UtilityType.Grenade && def.id == "assaulter")
         {
             grenadeCd -= Time.deltaTime;
             if (grenadeCd <= 0f && !grenadeInFlight && Time.time >= nextGrenadeScan)

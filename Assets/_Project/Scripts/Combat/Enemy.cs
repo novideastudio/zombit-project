@@ -347,8 +347,8 @@ public class Enemy : MonoBehaviour
         RefreshAim();
         if (isTrainingDummy) return;   // boneco parado: sem fila, sem ataque
         EnsureKind();
-        // Modo dupla: se o alvo caiu, passa a perseguir o sobrevivente vivo mais a frente.
-        if (HeroSquad.Count > 0 && (target == null || TargetDown()))
+        // Dupla/trio: o alvo e sempre o sobrevivente vivo que esta mais a frente (reavaliado a cada frame, inclusive apos trocar a formacao).
+        if (HeroSquad.Count > 0) // reavalia todo frame: quem esta na frente toma o dano
         {
             var next = HeroSquad.FrontTarget();
             if (next != null && next != target) { target = next; targetHealth = null; }

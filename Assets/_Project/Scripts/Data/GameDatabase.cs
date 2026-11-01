@@ -74,17 +74,17 @@ public static class GameDatabase
     // mapX / mapY = posicao na imagem do mapa (0..1, origem no canto inferior esquerdo)
     public static readonly List<LocationDef> Locations = new List<LocationDef>
     {
-        new LocationDef { id = "residencial", name = "Bairro Residencial", theme = "escola", recommendedLevel = 1, difficulty = 1, waves = 3,
-            countMult = 0.8f, goldReward = 60, mapX = 0.446364f, mapY = 0.721948f,
-            description = "Ruas silenciosas tomadas por poucos infectados. Um bom lugar para começar." },
         new LocationDef { id = "suburbio", name = "Subúrbio", theme = "escola", hasBoss = true, recommendedLevel = 3, difficulty = 1, waves = 3,
-            countMult = 1.0f, goldReward = 120, mapX = 0.156524f, mapY = 0.906905f, requires = new[] { "residencial" },
+            countMult = 1.0f, goldReward = 120, mapX = 0.156524f, mapY = 0.906905f,
             description = "Casas e fazendas abandonadas. Um mutante enorme guarda a escola local." },
+        new LocationDef { id = "residencial", name = "Bairro Residencial", theme = "escola", recommendedLevel = 1, difficulty = 1, waves = 3,
+            countMult = 0.8f, goldReward = 60, mapX = 0.446364f, mapY = 0.721948f, requires = new[] { "suburbio" },
+            description = "Ruas silenciosas tomadas por poucos infectados." },
         new LocationDef { id = "shopping", name = "Shopping", theme = "centro", recommendedLevel = 5, difficulty = 2, waves = 4,
             countMult = 1.0f, goldReward = 170, mapX = 0.659618f, mapY = 0.518496f, requires = new[] { "residencial" },
             description = "Estacionamentos e lojas saqueadas. Hordas médias." },
         new LocationDef { id = "industrial", name = "Zona Industrial", theme = "centro", recommendedLevel = 7, difficulty = 2, waves = 4,
-            countMult = 1.2f, goldReward = 210, mapX = 1.356885f, mapY = 0.027127f, requires = new[] { "suburbio" },
+            countMult = 1.2f, goldReward = 210, mapX = 1.356885f, mapY = 0.027127f, requires = new[] { "residencial" },
             description = "Porto, guindastes e galpões. Muitos zumbis em espaço aberto." },
         new LocationDef { id = "hospital", name = "Hospital", theme = "hospital", hasBoss = true, recommendedLevel = 9, difficulty = 3, waves = 5,
             countMult = 1.2f, goldReward = 250, mapX = 0.214286f, mapY = 0.288533f, requires = new[] { "shopping" },
