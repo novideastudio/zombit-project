@@ -1,106 +1,102 @@
+using System.Collections.Generic;
 using UnityEngine;
 
+// Contact shadows anchored to visible feet, not the transparent canvas of the sprite.
+[DefaultExecutionOrder(100)]
 public class YSort : MonoBehaviour
 {
-    /// <summary>Desempate para personagens na mesma altura (menor = desenhado atras).</summary>
     [HideInInspector] public int sortBias;
-
-    [Header("Sombra de contato (ancora o personagem no chao)")]
-    public bool contactShadow = true;
-    [Range(0f, 1f)] public float shadowOpacity = 0.42f;
-    [Range(0.3f, 1.2f)] public float shadowWidth = 0.80f;    // fracao da largura do sprite
-    [Range(0.1f, 0.5f)] public float shadowAspect = 0.26f;   // altura / largura da elipse
-
-    SpriteRenderer sr;
-    float spriteMinY;   // base do sprite em unidades locais (relativa ao pivot)
+    [Header("Sombra de contato")]
+    public bool contactShadow=true;
+    [Range(0,1)]public float shadowOpacity=.60f;
+    [Range(.3f,1.5f)]public float shadowWidth=.95f;
+    [Range(.1f,.5f)]public float shadowAspect=.23f;
+    public Vector2 shadowFootOffset=Vector2.zero;
+    SpriteRenderer sr,shadow;
     Sprite cachedSprite;
-
-    SpriteRenderer shadow;
+    Vector2 footLocal;
     static Sprite shadowSprite;
     static Transform shadowRoot;
+    static readonly Dictionary<Sprite,Vector2> feetCache=new Dictionary<Sprite,Vector2>();
 
-    void Awake() => sr = GetComponent<SpriteRenderer>();
-
-    void OnEnable() { if (shadow != null) shadow.gameObject.SetActive(true); }
-    void OnDisable() { if (shadow != null) shadow.gameObject.SetActive(false); }
-    void OnDestroy() { if (shadow != null) Destroy(shadow.gameObject); }
-
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetStatics(){feetCache.Clear();shadowSprite=null;shadowRoot=null;}
+    void Awake(){sr=GetComponent<SpriteRenderer>();}
+    void OnEnable(){if(shadow!=null)shadow.gameObject.SetActive(true);}
+    void OnDisable(){if(shadow!=null)shadow.gameObject.SetActive(false);}
+    void OnDestroy(){if(shadow!=null)Destroy(shadow.gameObject);}
     void LateUpdate()
     {
-        if (sr == null) sr = GetComponent<SpriteRenderer>();
-        if (sr == null || sr.sprite == null) return;
-
-        // O bounds do sprite so muda quando o sprite muda; evita sr.bounds (chamada nativa) por quadro.
-        if (sr.sprite != cachedSprite)
-        {
-            cachedSprite = sr.sprite;
-            spriteMinY = cachedSprite.bounds.min.y;
-        }
-
-        // Sort by the sprite's feet/bottom edge, not its pivot or center.
-        float feetY = transform.position.y + spriteMinY * Mathf.Abs(transform.localScale.y);
-        sr.sortingOrder = Mathf.RoundToInt(-feetY * 100f) + sortBias;
-
-        UpdateShadow(feetY);
+        if(sr==null)sr=GetComponent<SpriteRenderer>();
+        if(sr==null || sr.sprite==null){if(shadow!=null)shadow.enabled=false;return;}
+        if(cachedSprite!=sr.sprite){cachedSprite=sr.sprite;footLocal=VisibleFoot(cachedSprite);}
+        Vector2 local=footLocal;
+        if(sr.flipX)local.x=-local.x;if(sr.flipY)local.y=-local.y;
+        Vector3 feet=transform.TransformPoint(new Vector3(local.x,local.y,0));
+        sr.sortingOrder=Mathf.RoundToInt(-feet.y*100)+sortBias;
+        if(!contactShadow && !CombatVisuals.AlwaysShowShadows){if(shadow!=null)shadow.enabled=false;return;}
+        if(shadow==null)CreateShadow();
+        if(shadow==null)return;
+        float width=CombatVisuals.ShadowWidth(cachedSprite,cachedSprite.bounds.size.x*Mathf.Abs(transform.lossyScale.x)*shadowWidth,Mathf.Abs(transform.lossyScale.y));
+        float height=width*shadowAspect*CombatVisuals.ShadowAspectMult;
+        shadow.transform.position=feet+new Vector3(shadowFootOffset.x,shadowFootOffset.y,0);
+        shadow.transform.localScale=new Vector3(width,height,1);
+        shadow.enabled=sr.enabled;shadow.sortingLayerID=sr.sortingLayerID;shadow.sortingOrder=sr.sortingOrder-1;
+        shadow.color=CombatVisuals.ShadowColor(shadowOpacity*CombatVisuals.ShadowOpacityMult*sr.color.a);
     }
-
-    // Elipse escura nos pes. Fica logo ATRAS do personagem (order - 1), entao quem esta na frente cobre a sombra de quem esta atras.
-    void UpdateShadow(float feetY)
+    static Vector2 VisibleFoot(Sprite sprite)
     {
-        if (!contactShadow && !CombatVisuals.AlwaysShowShadows)
+        if(feetCache.TryGetValue(sprite,out var result))return result;
+        var metrics=SpriteMetrics.Get(sprite);
+        var rect=sprite.rect;float ppu=Mathf.Max(.001f,sprite.pixelsPerUnit);
+        float x=sprite.pivot.x;
+        float bottom=metrics.bottomPx;
+        // Estimate foot centre from the bottom 12% of visible pixels, excluding the weapon.
+        var texture=sprite.texture;
+        if(texture!=null && texture.isReadable && !sprite.packed)
         {
-            if (shadow != null) shadow.enabled = false;
-            return;
+            try
+            {
+                var pixels=texture.GetPixels32();
+                int ox=Mathf.RoundToInt(rect.x),oy=Mathf.RoundToInt(rect.y);
+                int w=Mathf.RoundToInt(rect.width),h=Mathf.RoundToInt(rect.height);
+                int lo=Mathf.Clamp(Mathf.FloorToInt(bottom),0,Mathf.Max(0,h-1));
+                int hi=Mathf.Min(h-1,lo+Mathf.Max(1,Mathf.RoundToInt(metrics.heightPx*.12f)));
+                double sum=0;int count=0;
+                for(int py=lo;py<=hi;py++)for(int px=0;px<w;px++)
+                {
+                    int at=(oy+py)*texture.width+ox+px;
+                    if(at<0 || at>=pixels.Length || pixels[at].a<=32)continue;
+                    sum+=px+.5;count++;
+                }
+                if(count>0)x=(float)(sum/count);
+            }
+            catch(UnityException){ /* Non-readable/unsupported atlas: pivot fallback. */ }
         }
-        if (shadow == null) CreateShadow();
-        if (shadow == null) return;
-
-        float sx = Mathf.Abs(transform.lossyScale.x);
-        var b = cachedSprite.bounds;
-        float width = CombatVisuals.ShadowWidth(cachedSprite, b.size.x * sx * shadowWidth, Mathf.Abs(transform.lossyScale.y));
-        float height = width * shadowAspect * CombatVisuals.ShadowAspectMult;
-        float cx = transform.position.x + b.center.x * sx * (sr.flipX ? -1f : 1f);
-
-        var t = shadow.transform;
-        t.position = new Vector3(cx, feetY + height * 0.12f, transform.position.z);
-        t.localScale = new Vector3(width, height, 1f);
-        shadow.enabled = sr.enabled;
-        shadow.sortingLayerID = sr.sortingLayerID;
-        shadow.sortingOrder = sr.sortingOrder - 1;
-        shadow.color = CombatVisuals.ShadowColor(shadowOpacity * CombatVisuals.ShadowOpacityMult * sr.color.a);   // some junto com o personagem (morte/fade)
+        result=new Vector2((x-sprite.pivot.x)/ppu,(bottom-sprite.pivot.y)/ppu);
+        feetCache[sprite]=result;return result;
     }
-
     void CreateShadow()
     {
-        if (shadowSprite == null) shadowSprite = MakeShadowSprite();
-        if (shadowRoot == null) shadowRoot = new GameObject("ContactShadows").transform;
-        var go = new GameObject("ContactShadow");
-        go.transform.SetParent(shadowRoot, false);
-        shadow = go.AddComponent<SpriteRenderer>();
-        shadow.sprite = shadowSprite;
+        if(shadowSprite==null)shadowSprite=MakeShadowSprite();
+        if(shadowRoot==null)shadowRoot=new GameObject("ContactShadows").transform;
+        var go=new GameObject("ContactShadow");go.transform.SetParent(shadowRoot,false);
+        shadow=go.AddComponent<SpriteRenderer>();shadow.sprite=shadowSprite;
     }
-
     static Sprite MakeShadowSprite()
     {
-        const int size = 64;
-        var tex = new Texture2D(size, size, TextureFormat.RGBA32, false)
+        const int n=96;
+        var texture=new Texture2D(n,n,TextureFormat.RGBA32,false){filterMode=FilterMode.Bilinear,wrapMode=TextureWrapMode.Clamp,hideFlags=HideFlags.HideAndDontSave};
+        var pixels=new Color[n*n];
+        for(int y=0;y<n;y++)for(int x=0;x<n;x++)
         {
-            filterMode = FilterMode.Bilinear,
-            wrapMode = TextureWrapMode.Clamp,
-            hideFlags = HideFlags.HideAndDontSave
-        };
-        var px = new Color[size * size];
-        for (int y = 0; y < size; y++)
-        for (int x = 0; x < size; x++)
-        {
-            float dx = (x + 0.5f) / size * 2f - 1f;
-            float dy = (y + 0.5f) / size * 2f - 1f;
-            float r2 = Mathf.Clamp01(dx * dx + dy * dy);
-            float a = Mathf.Pow(1f - r2, 1.6f);   // centro denso, borda suave
-            px[y * size + x] = new Color(1f, 1f, 1f, a);
+            float dx=(x+.5f)/n*2-1,dy=(y+.5f)/n*2-1;
+            float r=Mathf.Sqrt(dx*dx+dy*dy);
+            // Dense contact centre and a short soft falloff, rather than a pale haze.
+            float a=1-Mathf.SmoothStep(0f,1f,Mathf.Clamp01((r-.28f)/.72f));
+            pixels[y*n+x]=new Color(1,1,1,a);
         }
-        tex.SetPixels(px);
-        tex.Apply(false, true);
-        return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);   // 1 x 1 unidade
+        texture.SetPixels(pixels);texture.Apply(false,true);
+        return Sprite.Create(texture,new Rect(0,0,n,n),new Vector2(.5f,.5f),n);
     }
 }

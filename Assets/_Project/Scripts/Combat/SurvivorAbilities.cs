@@ -314,7 +314,7 @@ public class SurvivorAbilities : MonoBehaviour
         // Dano "equivalente M4A1" da arma do heroi: a torreta tem a mesma forca com qualquer arma.
         w.damage = hero.weapon.ReferenceDamage * 0.6f * (1f + bonuses.abilityPowerPercent);
         w.shotsPerSecond = 2.5f * (1f + bonuses.turretFireRatePercent);
-        w.range = 7f;
+        w.range = 18.5f; // ZOMBIT_TURRET_LONG_RANGE
         w.accuracy = 0.7f;
         w.spread = 0.8f;
         w.magazineSize = 30;

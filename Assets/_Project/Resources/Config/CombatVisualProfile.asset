@@ -11,17 +11,17 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bbf2945d06a8458c821d82e1ec97c8d4, type: 3}
   m_Name: CombatVisualProfile
-  m_EditorClassIdentifier:
-  gradeCharacters: 1
-  heroTint: {r: 0.94, g: 0.88, b: 0.82, a: 1}
-  zombieTint: {r: 0.92, g: 0.86, b: 0.82, a: 1}
+  m_EditorClassIdentifier: 
+  gradeCharacters: 0
+  heroTint: {r: 1, g: 1, b: 1, a: 1}
+  zombieTint: {r: 1, g: 1, b: 1, a: 1}
   alwaysShowShadows: 1
-  shadowOpacityMult: 1.45
+  shadowOpacityMult: 1.38
   shadowByHeight: 1
-  shadowWidthPerHeight: 0.62
-  shadowAspectMult: 1.2
+  shadowWidthPerHeight: 1.5
+  shadowAspectMult: 0.737
   spreadZombieLane: 1
-  laneSpreadY: 0.3
-  polishRain: 1
+  laneSpreadY: 0.152
+  polishRain: 0
   rainSplashes: 1
-  rainSplashCount: 22
+  rainSplashCount: 24
