@@ -387,6 +387,7 @@ public partial class MainMenuController
 
         selectedDiff = SuggestedDifficulty(loc, save);
         RefreshDifficultyUI();
+        BuildRegionalCampaignEntry(); // REGIONAL_VISUAL_MAP_V2
     }
 
     string RequirementNames(LocationDef loc)

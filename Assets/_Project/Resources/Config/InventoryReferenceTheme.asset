@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1629424c6e28c343a3524ffc231e314, type: 3}
+  m_Name: InventoryReferenceTheme
+  m_EditorClassIdentifier: Assembly-CSharp::InventoryReferenceTheme
+  enabledTheme: 1
+  panel: {fileID: 21300000, guid: 5e0675366f92d524795a95f064be3105, type: 3}
+  sectionHeader: {fileID: 21300000, guid: e3908e6dc029401488be59d3c72e24cc, type: 3}
+  slot: {fileID: 21300000, guid: af321efc8120f3945bb928e92ac78fd3, type: 3}
+  gold: {fileID: 21300000, guid: 306e4d9f367a08e49b9bc181c9e15414, type: 3}
+  red: {fileID: 21300000, guid: 709b494108643fe4a91d19d65a391271, type: 3}
+  green: {fileID: 21300000, guid: 4179ddd17388fa348802e9bcba764779, type: 3}
+  orange: {fileID: 21300000, guid: 043944cc88479f8419cc8b15ba8b0344, type: 3}
+  coinIcon: {fileID: 21300000, guid: 742750756698adf4588acce4e42dafe2, type: 3}
+  scrapIcon: {fileID: 21300000, guid: cff937cfe52ebc44ba1ecd855d784919, type: 3}
+  bagIcon: {fileID: 21300000, guid: d41de303f852391478c66d3fe5a94e49, type: 3}
+  weaponIcon: {fileID: 21300000, guid: 049ddcbb633f85f428005e77eabb61b7, type: 3}
+  workshopIcon: {fileID: 21300000, guid: dd993ea86dbe72a4d8bacd9d15ad0222, type: 3}
+  inventoryBackground: {fileID: 0}
+  titleColor: {r: 1, g: 0.78, b: 0.3, a: 1}
+  equipmentRect: {x: 16, y: 112, z: 720, w: 690}
+  bagRect: {x: 752, y: 112, z: 640, w: 690}
+  detailsRect: {x: 1408, y: 112, z: 624, w: 690}
+  statsRect: {x: 16, y: 824, z: 2016, w: 310}
+  characters:
+  - id: assaulter
+    fullBody: {fileID: 0}
+    portrait: {fileID: 0}
+    weapon: {fileID: 0}
+  - id: sniper
+    fullBody: {fileID: 0}
+    portrait: {fileID: 0}
+    weapon: {fileID: 0}
+  - id: medic
+    fullBody: {fileID: 0}
+    portrait: {fileID: 0}
+    weapon: {fileID: 0}
+  - id: engineer
+    fullBody: {fileID: 0}
+    portrait: {fileID: 0}
+    weapon: {fileID: 0}
+  - id: explorer
+    fullBody: {fileID: 0}
+    portrait: {fileID: 0}
+    weapon: {fileID: 0}
+  slotIcons:
+  - slot: 1
+    icon: {fileID: 0}
+  - slot: 2
+    icon: {fileID: 0}
+  - slot: 3
+    icon: {fileID: 0}
+  - slot: 4
+    icon: {fileID: 0}
+  - slot: 5
+    icon: {fileID: 0}
+  - slot: 0
+    icon: {fileID: 0}

@@ -466,7 +466,7 @@ public partial class MissionFlow : MonoBehaviour
         // Trio: tres niveis na mesma linha; encolhe a fonte em vez de quebrar.
         line.enableAutoSizing = true; line.fontSizeMin = 22; line.fontSizeMax = 32;
 
-        var rew = UIFactory.Txt(c.transform, "RECOMPENSAS", 38, T, Color.white, "RewardsTitle");
+        var rew = UIFactory.Txt(c.transform, RegionalWorkshopResult.RewardsTitle(win), 38, T, Color.white, "RewardsTitle");
         UIFactory.Place(rew.rectTransform, new Vector2(0.5f, 1f), new Vector2(0, -420), new Vector2(800, 50));
 
         if (drops.Count > 0)

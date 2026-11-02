@@ -18,7 +18,9 @@ public partial class MainMenuController
         BuildMapBackpackPanel(sharedInventoryView.Bag,save,visible,mapInventorySelectedUid);
         BuildMapItemDetails(sharedInventoryView.Details,item,equipped,save);
         sharedInventoryView.Finish(invCategory,invSurvivorId,scroll);
+        BuildRegionalInventoryEntry(); // REGIONAL_VISUAL_INVENTORY_V2
         Show("mapInventory");sharedInventoryView.Fit.Apply();
+        ApplyInventoryReferenceLayout(); // INVENTORY_REFERENCE_LAYOUT_V1
     }
     void BuildSharedMenuEquipment(SaveData save,string selectedUid)
     {
