@@ -35,8 +35,7 @@ public sealed class ZomBitCampaignReferenceSkin : MonoBehaviour
     void LateUpdate()
     {
         if(stage==null || theme==null || !theme.enabledTheme || !stage.gameObject.activeInHierarchy)return;
-        if(Time.unscaledTime<nextSearch)return;
-        nextSearch=Time.unscaledTime+.15f;
+        // Update geometry every LateUpdate so controller callbacks cannot leave a stale layout.
         // Skin after the original updater; original controller may change button sprites.
         PaintSelection();
     }
@@ -96,11 +95,12 @@ public sealed class ZomBitCampaignReferenceSkin : MonoBehaviour
         Place(R(wallet,"ScrapIcon"),new Vector4(280,18,40,40));Art(R(wallet,"ScrapIcon"),theme.gearIcon);
         Place(R(wallet,"ScrapValue"),new Vector4(335,10,180,60));Label(wallet,"ScrapValue",34);
         Place(R(stage,"CampaignSettings"),new Vector4(1800,8,88,80));Art(R(stage,"CampaignSettings/SettingsIcon"),theme.gearIcon);
-        Hide(panel,"TitleBar/CloseDetails");
+        var close=R(panel,"TitleBar/CloseDetails");
+        if(close!=null){close.gameObject.SetActive(true);Place(close,new Vector4(510,7,48,48));Art(close,theme.goldFrame,true);close.SetAsLastSibling();}
         Place(R(panel,"TitleBar"),new Vector4(16,10,570,66));
         Place(R(panel,"TitleBar/NumberBadge"),new Vector4(0,0,80,60));
         Place(R(panel,"TitleBar/Num"),new Vector4(0,0,80,60));Label(R(panel,"TitleBar"),"Num",38);
-        Place(R(panel,"TitleBar/DName"),new Vector4(96,0,470,64));Label(R(panel,"TitleBar"),"DName",40);
+        Place(R(panel,"TitleBar/DName"),new Vector4(96,0,400,64));Label(R(panel,"TitleBar"),"DName",37);
         Place(R(panel,"PreviewFrame"),new Vector4(20,82,562,174));
         Place(R(panel,"PreviewFrame/PreviewMask"),new Vector4(6,6,550,162));
         var preview=R(panel,"PreviewFrame/PreviewMask/SelectedLocationPreview");
@@ -154,13 +154,13 @@ public sealed class ZomBitCampaignReferenceSkin : MonoBehaviour
     {
         var panel=R(stage,"PcCampaignDetails");if(panel==null)return;
         // Reapply map geometry after original open/close handlers, while details are visible.
-        if(panel.gameObject.activeSelf)Place(R(stage,"MapArea"),theme.mapRect);
+        SyncMapGeometry(); // ZOMBIT_MAP_GEOMETRY_V2
         foreach(var entry in theme.locations ?? new ZomBitCampaignReferenceTheme.Entry[0])
         {
             if(entry==null)continue;
             var node=stage.Find("MapArea/MapInner/MapMarkerLayer/Node_"+entry.id);
             if(node==null)continue;
-            var pin=node.Find("SelectedPin");bool selected=pin!=null && pin.gameObject.activeSelf;
+            var pin=node.Find("SelectedPin");bool selected=panel.gameObject.activeSelf && pin!=null && pin.gameObject.activeSelf;
             // Don't disable the pin: its active state is maintained by SelectLocation.
             var pinImage=pin!=null?pin.GetComponent<Image>():null;if(pinImage!=null)pinImage.enabled=false;
             Art(node,selected?theme.selectedFrame:theme.normalFrame,true);
@@ -176,6 +176,47 @@ public sealed class ZomBitCampaignReferenceSkin : MonoBehaviour
             if(old!=null && old.sprite==null)Art(t,theme.normalFrame,true);
         }
     }
+    // Keep the map viewport and marker coordinates consistent in both states.
+    void SyncMapGeometry()
+    {
+        var map=R(stage,"MapArea");var details=R(stage,"PcCampaignDetails");
+        if(map==null || theme==null || details==null)return;
+        bool open=details.gameObject.activeSelf;
+        Vector4 q=theme.mapRect;
+        if(!open)
+        {
+            // Full stage width; preserve the configured header/footer baseline.
+            q.x=0;q.z=Mathf.Max(1,stage.rect.width);
+        }
+        Place(map,q);
+        var inner=R(map,"MapInner");
+        var markers=inner!=null?R(inner,"MapMarkerLayer"):null;
+        var art=inner!=null?inner.Find("CityMapArt")?.GetComponent<Image>():null;
+        if(markers==null || inner==null)return;
+        // Fit image and marker layer to exactly the same rendered rectangle.
+        Vector2 area=inner.rect.size;
+        if(area.x<=0 || area.y<=0)return;
+        Vector2 rendered=area;
+        if(art!=null && art.sprite!=null)
+        {
+            art.preserveAspect=true;
+            float aspect=art.sprite.rect.width/Mathf.Max(1,art.sprite.rect.height);
+            if(area.x/area.y>aspect)rendered.x=area.y*aspect;
+            else rendered.y=area.x/aspect;
+        }
+        markers.anchorMin=markers.anchorMax=markers.pivot=new Vector2(.5f,.5f);
+        markers.anchoredPosition=Vector2.zero;markers.sizeDelta=rendered;markers.localScale=Vector3.one;
+        float baseW=Mathf.Max(1,theme.mapRect.z),baseH=Mathf.Max(1,theme.mapRect.w);
+        foreach(var entry in theme.locations ?? new ZomBitCampaignReferenceTheme.Entry[0])
+        {
+            if(entry==null || string.IsNullOrEmpty(entry.id))continue;
+            var node=R(markers,"Node_"+entry.id);if(node==null)continue;
+            node.anchorMin=node.anchorMax=new Vector2(entry.rect.x/baseW,1-entry.rect.y/baseH);
+            node.pivot=new Vector2(0,1);node.anchoredPosition=Vector2.zero;
+            node.sizeDelta=new Vector2(entry.rect.z,entry.rect.w);node.localScale=Vector3.one;
+        }
+    }
+
     [ContextMenu("Reaplicar layout (Play Mode)")]
     public void Reapply(){if(stage!=null && theme!=null)ApplyLayout();}
 }

@@ -182,7 +182,7 @@ public partial class MainMenuController
         PcCampArtImage(settings.transform,"SettingsIcon","Art/Skills/icon_gear",16,14,48,44);
 
         BuildPcCampaignRulesModal();
-        SetPcCampaignDetails(true);
+        SetPcCampaignDetails(false); // ZOMBIT_MAP_START_CLOSED_V2
         var updater=pcCampaignStage.gameObject.AddComponent<CampaignPcRefresh>();
         updater.refresh=()=>{RefreshPcCampaignStyle();RefreshPcCampaignWallet();};
         updater.escape=()=>{if(missionFormationCanvas!=null){CloseMissionFormation();return;}if(pcCampaignRules!=null && pcCampaignRules.activeSelf){ClosePcCampaignRules();return;}if(pcCampaignOpen)SetPcCampaignDetails(false);else ShowHome();};
