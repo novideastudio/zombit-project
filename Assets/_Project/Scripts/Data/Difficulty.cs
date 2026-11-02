@@ -88,7 +88,7 @@ public static class Difficulties
             eliteMods = true, eliteEnrage = true, levelUpHealMult = 0f, waveTimeLimit = 45f },
     };
 
-    public static DifficultyDef Get(int value) => All[Mathf.Clamp(value, 1, 4) - 1];
+    public static DifficultyDef Get(int value) => ProgressionRuntime.BattleDifficulty(value);
     public static DifficultyDef Get(Difficulty d) => Get((int)d);
 
     public static string Key(string locationId, int difficulty) => locationId + "#" + Mathf.Clamp(difficulty, 1, 4);
@@ -113,7 +113,7 @@ public static class Difficulties
         return
             $"Zumbis: vida x{d.zombieHealth:0.##} · dano x{d.zombieDamage:0.##} · vel x{d.speedMult:0.##}\n" +
             $"Hordas pela direita    XP x{d.xpMult:0.##}    Sucata x{d.scrapMult:0.##}\n" +
-            $"Ao morrer: perde nível/XP da missão (a sucata fica); {loss}.\n" +
+            $"Ao morrer: perde nível/XP da missão (retém {Mathf.RoundToInt(ProgressionRuntime.Config.failedScrapRetention * 100f)}% da sucata); {loss}.\n" +
             $"{char.ToUpper(heal[0])}{heal.Substring(1)}; {timer}." + extra;
     }
 }

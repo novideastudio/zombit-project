@@ -1,0 +1,162 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17f5903b49baf2b43800860ea6d09f36, type: 3}
+  m_Name: RegionalRewardConfig
+  m_EditorClassIdentifier: Assembly-CSharp::RegionalRewardConfig
+  easyDropChance: 0.02
+  normalDropChance: 0.04
+  hardDropChance: 0.06
+  nightmareDropChance: 0.08
+  bootsDelay: 8
+  bootsDuration: 5
+  bootsHealPerSecond: 0.01
+  frontReduction: 0.08
+  shoppingScrapBonus: 0.1
+  emergencyThreshold: 0.3
+  emergencyShield: 0.12
+  emergencyDuration: 5
+  emergencyCooldown: 30
+  interventionHits: 3
+  interventionReduction: 0.2
+  swapFireRate: 0.1
+  swapDuration: 5
+  swapCooldown: 15
+  eliteShotBonus: 0.1
+  reloadReduction: 0.1
+  reloadProtection: 3
+  regions:
+  - id: suburbio
+    name: "Sub\xFArbio"
+    itemName: Botas do Sobrevivente
+    description: "Ap\xF3s 8s sem dano: recupera 1% de vida/s por at\xE9 5s. Dano interrompe."
+    title: "Sobrevivente do Sub\xFArbio"
+    frame: "\xDAltima Luz"
+    slot: 4
+    sealsCost: 12
+    goldCost: 100
+    scrapCost: 60
+    damage: 0.5
+    health: 32
+    defense: 0.5
+    icon: {fileID: 0}
+  - id: residencial
+    name: Bairro Residencial
+    itemName: Colete Improvisado
+    description: Reduz 8% do dano direto enquanto ocupa a Frente.
+    title: Protetor do Bairro
+    frame: Portas Fechadas
+    slot: 2
+    sealsCost: 12
+    goldCost: 200
+    scrapCost: 120
+    damage: 1
+    health: 44
+    defense: 1
+    icon: {fileID: 0}
+  - id: shopping
+    name: Shopping
+    itemName: Mochila do Saqueador
+    description: "+10% de sucata na vit\xF3ria. Um b\xF4nus por equipe; n\xE3o acumula."
+    title: "Ca\xE7ador de Suprimentos"
+    frame: "Liquida\xE7\xE3o Final"
+    slot: 5
+    sealsCost: 12
+    goldCost: 300
+    scrapCost: 180
+    damage: 1.5
+    health: 56
+    defense: 1.5
+    icon: {fileID: 0}
+  - id: hospital
+    name: Hospital
+    itemName: "Colete de Emerg\xEAncia"
+    description: 'Ao sobreviver a dano abaixo de 30% de vida: escudo de 12% por 5s. Recarga 30s.'
+    title: "Alta Improv\xE1vel"
+    frame: "C\xF3digo Vermelho"
+    slot: 2
+    sealsCost: 12
+    goldCost: 400
+    scrapCost: 240
+    damage: 2
+    health: 68
+    defense: 2
+    icon: {fileID: 0}
+  - id: delegacia
+    name: Delegacia
+    itemName: "Capacete de Interven\xE7\xE3o"
+    description: "Ap\xF3s 3 ataques diretos: o pr\xF3ximo causa 20% menos dano."
+    title: "\xDAltima Patrulha"
+    frame: "Opera\xE7\xE3o Encerrada"
+    slot: 1
+    sealsCost: 12
+    goldCost: 500
+    scrapCost: 300
+    damage: 2.5
+    health: 80
+    defense: 2.5
+    icon: {fileID: 0}
+  - id: metro
+    name: "Esta\xE7\xE3o de Metr\xF4"
+    itemName: "Cal\xE7as do Batedor"
+    description: "Ap\xF3s trocar de posi\xE7\xE3o: +10% cad\xEAncia por 5s. Recarga 15s."
+    title: "Passageiro da \xDAltima Linha"
+    frame: Sem Retorno
+    slot: 3
+    sealsCost: 12
+    goldCost: 600
+    scrapCost: 360
+    damage: 3
+    health: 92
+    defense: 3
+    icon: {fileID: 0}
+  - id: centro
+    name: Centro da Cidade
+    itemName: "Capacete do Ca\xE7ador"
+    description: "Tiros pr\xF3prios causam +10% de dano a elites e chefes."
+    title: Reconquistador
+    frame: "Cora\xE7\xE3o da Cidade"
+    slot: 1
+    sealsCost: 12
+    goldCost: 700
+    scrapCost: 420
+    damage: 3.5
+    health: 104
+    defense: 3.5
+    icon: {fileID: 0}
+  - id: base
+    name: Base Militar
+    itemName: "Colete de Opera\xE7\xF5es"
+    description: 'Ao concluir recarga: recebe 10% menos dano direto por 3s.'
+    title: Operador de Elite
+    frame: Protocolo Alfa
+    slot: 2
+    sealsCost: 12
+    goldCost: 800
+    scrapCost: 480
+    damage: 4
+    health: 116
+    defense: 4
+    icon: {fileID: 0}
+  - id: industrial
+    name: Docas
+    itemName: Mochila do Contrabandista
+    description: "Uma rolagem extra de conclus\xE3o quando todos os integrantes terminam vivos. Um b\xF4nus por equipe."
+    title: Dono do Porto
+    frame: Fim da Travessia
+    slot: 5
+    sealsCost: 12
+    goldCost: 900
+    scrapCost: 540
+    damage: 4.5
+    health: 128
+    defense: 4.5
+    icon: {fileID: 0}

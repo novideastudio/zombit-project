@@ -97,7 +97,7 @@ public partial class MissionFlow : MonoBehaviour
                 if (loot != null)
                 {
                     save.gold += Mathf.Max(0, loot.gold / 2);
-                    save.scrap += Mathf.Max(0, loot.scrap / 2);   // abandonar conta como derrota: metade da sucata
+                    save.scrap += ProgressionRuntime.RetainScrap(loot.scrap);   // abandonar conta como derrota: metade da sucata
                 }
                 save.activeRun = new ActiveRun();
                 save.pendingNotice = DeathPenalty.Describe(result, "Você abandonou a missão (conta como derrota).");
@@ -213,8 +213,9 @@ public partial class MissionFlow : MonoBehaviour
         save.gold += goldGain;
 
         // Sucata: derrota guarda 100% (cada tentativa fortalece o heroi); vitoria rende +15%.
-        int scrapGain = loot != null ? loot.scrap : 0;
+        int scrapGain = loot != null ? (win ? loot.scrap : ProgressionRuntime.RetainScrap(loot.scrap)) : 0; // ZOMBIT_PROGRESSION_RETENTION_V1
         if (win) scrapGain = Mathf.RoundToInt(scrapGain * ScrapRules.WinBonus);
+        if (win) scrapGain += RegionalRewards.ExtraScrap(scrapGain); // ZOMBIT_REGIONAL_SCRAP_V1
         save.scrap += scrapGain;
 
         var p = save.GetProgress(s.id);
@@ -280,9 +281,9 @@ public partial class MissionFlow : MonoBehaviour
             if (first && level < (int)Difficulty.Pesadelo)
             {
                 var next = Difficulties.Get(level + 1);
-                unlockText = $"Nível {next.name} liberado neste local.";
+                unlockText = $"Nível {next.name} disponível para um desafio maior.";
             }
-            if (newUnlock) unlockText = (unlockText.Length > 0 ? unlockText + "  " : "") + "Novas áreas podem ter sido desbloqueadas!";
+            if (newUnlock) unlockText = (unlockText.Length > 0 ? unlockText + "  " : "") + "Todos os locais estão abertos. Confira o poder recomendado.";
         }
         else
         {
@@ -303,6 +304,7 @@ public partial class MissionFlow : MonoBehaviour
             penaltyText = DeathPenalty.Describe(result, header);
         }
 
+        RegionalRewards.GrantVictory(save, loc, level, win, inv, stats, loot, drops); // ZOMBIT_REGIONAL_VICTORY_V1
         save.activeRun = new ActiveRun();   // missao terminada: nao conta mais como interrompida
 
         bool saved = false;
@@ -312,6 +314,7 @@ public partial class MissionFlow : MonoBehaviour
             catch (Exception e) { Debug.LogWarning("Zombit: falha ao salvar: " + e.Message); }
         }
 
+        ProgressionRuntime.RecordResult(win, loc, elapsed, goldGain, scrapGain); // ZOMBIT_PROGRESSION_LOG_V1
         Time.timeScale = 0f;
         BuildPanel(win, goldGain, scrapGain, unlockText, drops, recovered.Count, soldCount, soldGold, saved, penaltyText, stars, hpRatio,
             fallenNote, primaryAlive);
@@ -483,7 +486,7 @@ public partial class MissionFlow : MonoBehaviour
         else
         {
             string m = win ? "Nenhum item desta vez."
-                : (string.IsNullOrEmpty(penaltyText) ? "Sem itens ao ser derrotado." : penaltyText) + (scrapGain > 0 ? "\nA sucata foi mantida: use na oficina (inventário) para melhorar seus itens." : "")
+                : (string.IsNullOrEmpty(penaltyText) ? "Sem itens ao ser derrotado." : penaltyText) + (scrapGain > 0 ? "\nParte da sucata foi mantida: use na oficina (inventário) para melhorar seus itens." : "")
                   + "\nVença a missão para receber itens.";
             var none = UIFactory.Txt(c.transform, m, 28, T, win ? UIFactory.Gray : new Color(1f, 0.78f, 0.62f), "NoDrops");
             UIFactory.Place(none.rectTransform, new Vector2(0.5f, 1f), new Vector2(0, -500), new Vector2(1500, 240));

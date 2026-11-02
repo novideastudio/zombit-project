@@ -32,19 +32,7 @@ public static class Balance
 
     public static Zone ZoneOf(string locationId)
     {
-        switch (locationId)
-        {
-            case "residencial": return new Zone(0.254f, 0.105f, 0.41f);
-            case "suburbio":    return new Zone(0.488f, 0.150f, 0.58f);
-            case "shopping":    return new Zone(0.518f, 0.155f, 0.56f);
-            case "industrial":  return new Zone(0.582f, 0.165f, 0.57f);
-            case "hospital":    return new Zone(0.494f, 0.125f, 0.45f);
-            case "delegacia":   return new Zone(0.586f, 0.145f, 0.50f);
-            case "metro":       return new Zone(0.502f, 0.120f, 0.41f);
-            case "centro":      return new Zone(0.508f, 0.115f, 0.40f);
-            case "base":        return new Zone(0.334f, 0.075f, 0.25f);
-            default:            return new Zone(0.40f, 0.12f, 0.45f);
-        }
+        return ProgressionRuntime.Zone(locationId);
     }
 
     public static float XpScale(LocationDef loc) => loc != null ? ZoneOf(loc.id).xp : 0.40f;

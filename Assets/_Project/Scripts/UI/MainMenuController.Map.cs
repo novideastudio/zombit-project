@@ -245,6 +245,7 @@ public partial class MainMenuController
 
         if (dStart) dStart.interactable = locUnlocked && GameDatabase.IsDifficultyUnlocked(loc, save, selectedDiff);
         RefreshSquadSlots();   // 3o slot trava/destrava conforme o nivel (trio so no Pesadelo)
+        RefreshProgressionPowerLine(); // ZOMBIT_PROGRESSION_PANEL_V1
     }
 
     // Aviso longo (o Toast padrao e curto demais para mensagens de penalidade).
@@ -402,6 +403,7 @@ public partial class MainMenuController
     void OnStartMission()
     {
         if (selectedLoc == null) return;
+        if (!ConfirmProgressionRisk()) return; // ZOMBIT_PROGRESSION_GATE_V1
         GameSession.Location = selectedLoc;
         GameSession.Survivor = GameDatabase.GetSurvivor(GameSession.Save.selectedSurvivor);
         GameSession.Save.NormalizeSquad();

@@ -18,6 +18,7 @@ public class MissionSetup : MonoBehaviour
         var loc = GameSession.Location;
         var save = GameSession.Save;
         if (save != null) save.MigrateFromPreviousVersions();
+        ProgressionRuntime.BeginRun(save, loc); // ZOMBIT_PROGRESSION_BEGIN_V1
 
         var stats = FindFirstObjectByType<PlayerStats>();
         if (stats == null)
@@ -116,6 +117,7 @@ public class MissionSetup : MonoBehaviour
         Enemy.FuryDamage = 1f;
         Enemy.FurySpeed = 1f;
         Enemy.DamageDealt = 0f;
+        ProgressionRuntime.ConfigureBattle(loc, diff, squadSize); // ZOMBIT_PROGRESSION_COMBAT_V1
         // Vinheta vermelha + leve tremor de tela: so no principal (dois tremeriam a camera em dobro).
         // Se ele cair, o HeroSquad passa o efeito para o apoio.
         if (hero.GetComponent<HeroDamageFeedback>() == null) hero.gameObject.AddComponent<HeroDamageFeedback>();
@@ -171,9 +173,9 @@ public class MissionSetup : MonoBehaviour
                 hs.spawnPoints = ws.spawnPoints;
                 hs.theme = loc.theme;
                 hs.phases = Mathf.Max(1, loc.waves);
-                hs.phaseSeconds = tuning.hordePhaseSeconds;
+                hs.phaseSeconds = ProgressionRuntime.Config.phaseSeconds;
                 hs.baseRate = tuning.hordeBaseRate;
-                hs.ramp = tuning.hordeRampPerSecond;
+                hs.ramp = ProgressionRuntime.Config.hordeRamp;
                 hs.maxAlive = tuning.hordeMaxAlive;
                 hs.countMultiplier = loc.countMult * squadMult;   // o nivel entra por hordeRate (abaixo)
                 hs.hordeRate = diff.hordeRate;

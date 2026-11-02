@@ -5,6 +5,7 @@ using UnityEngine;
 [Serializable]
 public class ItemInstance
 {
+    public string regionUniqueId = ""; // ZOMBIT_REGIONAL_ITEM_V1
     public string uid;
     public string name;
     public string description;
@@ -133,6 +134,8 @@ public static class ItemVisual
     public static Sprite Icon(ItemInstance item)
     {
         if (item == null) return UIFactory.White;
+        var regionalArt = RegionalRewards.Get(RegionalRewards.UniqueId(item));
+        if (regionalArt != null && regionalArt.icon != null) return regionalArt.icon; // ZOMBIT_REGIONAL_ICON_V1
         Sprite specific = LoadIcon(ItemKey(item.name));
         if (specific != null) return specific;
         Sprite slot = IconForSlotAsset(item.slot);

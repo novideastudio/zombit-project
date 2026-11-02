@@ -98,37 +98,17 @@ public static class PowerRating
 
     public static int Of(SaveData save, string survivorId)
     {
-        if (save == null) return 0;
-        var p = save.GetProgress(string.IsNullOrEmpty(survivorId) ? save.selectedSurvivor : survivorId);
-        float power = 40f + PerLevel * (Mathf.Max(1, p.level) - 1);
-        if (p.equipped != null)
-            foreach (var it in p.equipped)
-            {
-                if (it == null) continue;
-                power += it.bonusDamage * PerDamage + it.bonusHealth * PerHealth + it.bonusDefense * PerDefense;
-                if (it.affixes != null)
-                    foreach (var a in it.affixes)
-                        if (a != null) power += a.value * (a.type == AffixType.Regen ? PerRegen : PerAffix);
-            }
-        return Mathf.RoundToInt(power);
+        return ProgressionRuntime.IndividualPower(save, string.IsNullOrEmpty(survivorId) && save != null ? save.selectedSurvivor : survivorId);
     }
 
     public static int Recommended(LocationDef loc, int difficulty)
     {
-        int rl = loc != null ? Mathf.Max(1, loc.recommendedLevel) : 1;
-        float tier = TierMult[Mathf.Clamp(difficulty, 1, 4) - 1];
-        return Mathf.RoundToInt((RecBase + RecPerLevel * (rl - 1)) * tier);
+        return ProgressionRuntime.Recommended(loc, difficulty);
     }
 
     /// <summary>Linha de texto (rich text) para o painel de dificuldade do mapa.</summary>
     public static string Describe(SaveData save, string survivorId, LocationDef loc, int difficulty)
     {
-        int have = Of(save, survivorId), need = Recommended(loc, difficulty);
-        float r = need > 0 ? (float)have / need : 1f;
-        string col = r >= 1f ? "#6CFF8A" : r >= 0.7f ? "#FFD84A" : "#FF6B6B";
-        string hint = r >= 1f ? "" : r >= 0.7f ? "  (arriscado: melhore itens na oficina)" : "  (fraco demais: farme sucata em níveis mais fáceis)";
-        var sb = new StringBuilder("\n");
-        sb.Append($"Poder <color={col}><b>{have}</b></color>  ·  recomendado <b>{need}</b>{hint}");
-        return sb.ToString();
+        return "\n" + ProgressionRuntime.Describe(save, loc, difficulty);
     }
 }

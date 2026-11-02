@@ -3,6 +3,7 @@ using UnityEngine;
 
 public static class GameDatabase
 {
+    static GameDatabase(){ ProgressionRuntime.PrepareRegions(); } // ZOMBIT_PROGRESSION_V1
     static List<SurvivorDef> survivors;
 
     public static List<SurvivorDef> Survivors
@@ -127,16 +128,12 @@ public static class GameDatabase
     // Continua sendo OU entre os requisitos, como o texto "ou" da UI.
     public static bool IsUnlocked(LocationDef loc, SaveData save)
     {
-        if (loc.requires == null || loc.requires.Length == 0) return true;
-        foreach (var r in loc.requires) if (save.HighestCompleted(r) >= (int)Difficulty.Normal) return true;
-        return false;
+        return loc != null;
     }
 
     /// <summary>Facil: sempre que o local esteja liberado. Demais: precisa vencer o nivel anterior (ou um acima).</summary>
     public static bool IsDifficultyUnlocked(LocationDef loc, SaveData save, int difficulty)
     {
-        if (!IsUnlocked(loc, save)) return false;
-        if (difficulty <= (int)Difficulty.Facil) return true;
-        return save.HighestCompleted(loc.id) >= difficulty - 1;
+        return loc != null && difficulty >= 1 && difficulty <= 4;
     }
 }

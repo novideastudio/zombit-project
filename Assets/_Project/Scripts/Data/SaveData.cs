@@ -64,6 +64,7 @@ public class LostItemRecord
 [Serializable]
 public class SaveData
 {
+    public string regionRewardsJson = ""; // ZOMBIT_REGIONAL_STATE_V1
     public int version = 7;
     public int slot = 1;
     public string selectedSurvivor = "assaulter";

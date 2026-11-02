@@ -425,7 +425,7 @@ public class Enemy : MonoBehaviour
             {
                 if (targetHealth == null) targetHealth = target.GetComponent<Health>();
                 if (targetHealth != null)
-                    targetHealth.Take(data.damage * DamageMult * damageBoost * FuryDamage);
+                    RegionalEffects.TakeDirect(targetHealth, data.damage * DamageMult * damageBoost * FuryDamage); // ZOMBIT_REGIONAL_DIRECT_V1
             }
         }
 

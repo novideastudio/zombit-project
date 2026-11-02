@@ -50,6 +50,8 @@ public class Health : MonoBehaviour
             ? amount * (1f - Mathf.Max(0f, defense) / (Mathf.Max(0f, defense) + DefenseHalfPoint))
             : amount - defense;
         float appliedDamage = Mathf.Min(Current, Mathf.Max(1f, reduced));
+        appliedDamage = RegionalEffects.FilterDamage(this, appliedDamage); // ZOMBIT_REGIONAL_DAMAGE_V1
+        if (appliedDamage <= 0f) return;
         Current = Mathf.Max(0f, Current - appliedDamage);
 
         Changed?.Invoke(Current, max);

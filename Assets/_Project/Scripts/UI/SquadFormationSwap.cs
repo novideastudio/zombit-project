@@ -320,6 +320,7 @@ public sealed class SquadFormationSwap : MonoBehaviour
         if (second.stats != null) StartCoroutine(Slide(second.stats.transform, new Vector2(-dxFirst, -dyFirst)));
 
         if (hud != null) hud.ApplySeatOrder(order);
+        RegionalEffects.OnSwap(first.stats, second.stats); // ZOMBIT_REGIONAL_SWAP_V1
         ZombitAudio.PlayUI();
         Flash("FORMAÇÃO: " + OrderText(), ReadyColor);
     }

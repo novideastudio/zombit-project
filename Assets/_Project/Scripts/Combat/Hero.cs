@@ -99,7 +99,7 @@ public class Hero : MonoBehaviour
         var t = FindClosest();
         if (!t) { nextScan = Time.time + ScanInterval; return; }
 
-        nextShot = Time.time + 1f / (weapon.shotsPerSecond * fireRateMult * (1f + affixFireRate));
+        nextShot = Time.time + 1f / (weapon.shotsPerSecond * fireRateMult * (1f + affixFireRate) * RegionalEffects.FireRate(this));
         Ammo--;
         Fire(t);
     }
@@ -146,6 +146,7 @@ public class Hero : MonoBehaviour
         // Projeteis vem de um pool (veja Projectile.Spawn): sem Instantiate/Destroy a cada tiro.
         // Tiro errado causa dano reduzido (Projectile.MissDamageMult) e o projetil morre ao passar do alcance da arma.
         var p = Projectile.Spawn(weapon.projectilePrefab, origin);
+        dmg *= RegionalEffects.ShotMultiplier(this, t); // ZOMBIT_REGIONAL_SHOT_V1
         p.Launch(dest, dmg, critical, weapon.pierceTargets, weapon.pierceFalloff, t, missed, EffectiveRange);
         // Brief pixel-art muzzle flash, aligned with the shot direction.
         PixelCombatVFX.Muzzle(origin, (dest - origin).normalized);
