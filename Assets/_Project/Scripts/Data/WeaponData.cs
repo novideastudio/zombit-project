@@ -33,7 +33,7 @@ public class WeaponData : ScriptableObject
 
     /// <summary>
     /// Dano "equivalente M4A1" (mesmo DPS, cadencia de referencia). Usado por habilidades de area
-    /// (granada, onda de choque, torreta) para que nao fiquem fortes demais com a SCAR-20 nem fracas com a MAC-10.
+    /// (granada, suporte médico e torreta) para que nao fiquem fortes demais com a SCAR-20 nem fracas com a MAC-10.
     /// </summary>
     public float ReferenceDamage => damage * Mathf.Max(0.1f, shotsPerSecond) / ReferenceFireRate;
 

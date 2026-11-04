@@ -109,7 +109,7 @@ public partial class ShootingRange : MonoBehaviour
         RestoreRangeCamera();
     }
 
-    // Todo dano que removeu vida de um boneco entra na medicao (tiros, granada, onda de choque, torreta).
+    // Todo dano que removeu vida de um boneco entra na medicao (tiros, granadas e torretas).
     void OnDamaged(Enemy e, float applied, float raw, bool crit)
     {
         if (e != null && e.isTrainingDummy) Tracker.Record(applied, crit);
@@ -262,6 +262,9 @@ public partial class ShootingRange : MonoBehaviour
     // Painel
     // =====================================================================
 
+    /// <summary>Canvas de interface do estande, exposto para a captura visual de prefabs no Editor.</summary>
+    public Canvas LayoutCanvas => canvas;
+
     void BuildUi()
     {
         canvas = UIFactory.MakeCanvas("RangeCanvas", 40);
@@ -339,6 +342,7 @@ public partial class ShootingRange : MonoBehaviour
         RefreshPresetButtons();
         RefreshButtons();
         ApplyPcRangeUi();
+        if (canvas != null) UILayoutPrefabApplier.Apply(canvas.transform as RectTransform, "trainingRange");
     }
 
     void RefreshPresetButtons()

@@ -87,8 +87,8 @@ public partial class MainMenuController : MonoBehaviour
         BuildSelect();
         BuildNicknameEditor();
 
-        // Conta online (login Google + nick unico). O ZombitCloud sobrevive entre cenas: ao voltar de uma missao
-        // a conta ja esta pronta e o menu abre direto no mapa, como antes.
+        // Conta online (login Google + nick unico). O ZombitCloud sobrevive entre cenas:
+        // missoes podem voltar ao mapa e atividades livres podem voltar ao acampamento.
         ZombitCloud.Ensure();
         BuildLogin();
         BuildAccountBadge();
@@ -99,7 +99,13 @@ public partial class MainMenuController : MonoBehaviour
         if (ZombitCloud.IsReady)
         {
             ApplyAccountNickPrefs();
-            if (GameSession.OpenMapOnLoad && GameSession.Save != null)
+            if (GameSession.OpenHomeOnLoad && GameSession.Save != null)
+            {
+                GameSession.OpenHomeOnLoad = false;
+                GameSession.OpenMapOnLoad = false;
+                ShowHome();
+            }
+            else if (GameSession.OpenMapOnLoad && GameSession.Save != null)
             {
                 GameSession.OpenMapOnLoad = false;
                 ShowMap();
@@ -115,7 +121,7 @@ public partial class MainMenuController : MonoBehaviour
     }
 
     // Recalibra a escala quando a janela Web/PC muda de tamanho ou quando o jogo abre no celular.
-    // O modo compacto usa uma resolucao de referencia menor para evitar textos e botoes minúsculos.
+    // Todas as telas usam a mesma referencia 1920x1080; o CanvasScaler adapta a escala a qualquer janela.
     void Update() => RefreshResponsiveCanvasScale(false);
 
     void RefreshResponsiveCanvasScale(bool force)
@@ -123,13 +129,10 @@ public partial class MainMenuController : MonoBehaviour
         if (canvas == null) return;
         var scaler = canvas.GetComponent<CanvasScaler>();
         if (scaler == null) return;
-        bool compact = Screen.width < 1100 || Screen.height < 650;
-        int mode = compact ? 1 : 0;
+        const int mode = 0; // modo unico: referencia 1920x1080 em qualquer resolucao
         if (!force && mode == responsiveCanvasMode) return;
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
-        scaler.matchWidthOrHeight = 0.5f;
-        scaler.referenceResolution = compact ? new Vector2(1280f, 720f) : new Vector2(1920f, 1080f);
+        // Resolucao de referencia unica (1920x1080) em qualquer dispositivo; a escala e adaptativa.
+        UIResolution.Apply(scaler);
         responsiveCanvasMode = mode;
         Canvas.ForceUpdateCanvases();
     }
@@ -160,11 +163,23 @@ public partial class MainMenuController : MonoBehaviour
         foreach (var kv in screens) if (kv.Value) kv.Value.gameObject.SetActive(kv.Key == key);
         if (key == "main" && continueBtn) continueBtn.interactable = PcTitleHasSave();
         if (key == "main") RefreshAccountLabel();
+        // Durante o bake, ShowHome/ShowMap são usados apenas para construir uma cópia
+        // visual das telas. Não inicialize áudio persistente nem serviços de runtime.
+        if (!editorUiBaking) ZombitAudio.SetCampfireEnabled(key == "home");
         // Telas vindas de prefab mantem o visual do Editor (WYSIWYG), a menos que UITheme.polishPrefabButtons esteja ligado.
         bool usesEditablePrefabLayout = prefabScreens.Contains(key) || UILayoutPrefabApplier.HasLayout(key);
-        if (screens.TryGetValue(key, out var visibleScreen) && visibleScreen &&
-            (!usesEditablePrefabLayout || UITheme.Current.polishPrefabButtons))
-            PolishScreenButtons(visibleScreen);
+        if (screens.TryGetValue(key, out var visibleScreen) && visibleScreen)
+        {
+            // Aplica ajustes feitos visualmente em Screen_<tela>.prefab antes de mostrar a tela.
+            // Os dados de jogo continuam sendo escritos pelos controladores; somente o layout/estilo
+            // e os elementos fixos sao herdados do prefab.
+            // Telas Screen_* completas ja sao a propria fonte visual.
+            // Somente telas construidas por codigo recebem o Screen_<key> como overlay de layout.
+            if (!prefabScreens.Contains(key)) UILayoutPrefabApplier.Apply(visibleScreen, key);
+            UILayoutPrefabApplier.ReapplyFits(visibleScreen);
+            if (!usesEditablePrefabLayout || UITheme.Current.polishPrefabButtons)
+                PolishScreenButtons(visibleScreen);
+        }
         if (toast) toast.transform.SetAsLastSibling();
     }
 

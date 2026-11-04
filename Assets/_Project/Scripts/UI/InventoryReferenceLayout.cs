@@ -206,7 +206,7 @@ public sealed class InventoryReferenceLayout : MonoBehaviour
         {
             if(!b.gameObject.activeSelf)continue;
             var txt=b.GetComponentInChildren<TMP_Text>(true);string words=txt!=null?txt.text.Trim().ToUpperInvariant():"";
-            if(words.StartsWith("EQUIPAR") || words.StartsWith("DESEQUIPAR") || words.StartsWith("MELHORAR") || words.StartsWith("VENDER"))actions.Add(b);
+            if(words.StartsWith("EQUIPAR") || words.StartsWith("DESEQUIPAR") || (words.StartsWith("MELHORAR") || words.StartsWith("REFINAR")) || words.StartsWith("VENDER"))actions.Add(b);
         }
         foreach(var action in actions)action.transform.SetParent(p,false);
         var keep=new HashSet<Transform>();foreach(var a in actions)keep.Add(a.transform);
@@ -224,6 +224,7 @@ public sealed class InventoryReferenceLayout : MonoBehaviour
         if(item==null){Label(body,"Empty","SELECIONE UM ITEM",24,90,576,100,26,theme.titleColor);return;}
         ItemInstance current=null;if(progress.equipped!=null)foreach(var it in progress.equipped)if(it!=null && it.slot==item.slot){current=it;break;}
         var iconBox=Box(body,"ItemFrame",20,76,142,142,theme.gold);
+        ItemTileStyling.Apply(iconBox, item); // DAILY_COMMERCE_DETAILS_RARITY_V1
         Icon(iconBox,"Icon",SlotIcon(item.slot,ItemVisual.Icon(item)),12,12,118,118);
         Label(body,"Name",item.name,180,78,422,52,27,RarityColors.Get(item.rarity));
         Label(body,"Type",item.rarity.ToString().ToUpperInvariant()+"  ·  "+item.slot.ToString().ToUpperInvariant()+"  ·  +"+item.upgradeLevel,180,137,422,30,18,theme.titleColor);
@@ -255,6 +256,6 @@ public sealed class InventoryReferenceLayout : MonoBehaviour
         }
     }
     static int ActionOrder(Button b)
-    {var t=b.GetComponentInChildren<TMP_Text>(true);string s=t!=null?t.text.Trim().ToUpperInvariant():"";return s.StartsWith("MELHORAR")?1:s.StartsWith("VENDER")?2:0;}
+    {var t=b.GetComponentInChildren<TMP_Text>(true);string s=t!=null?t.text.Trim().ToUpperInvariant():"";return (s.StartsWith("MELHORAR") || s.StartsWith("REFINAR"))?1:s.StartsWith("VENDER")?2:0;}
     static string Stats(ItemInstance i)=>i==null?"Dano 0\nVida 0 · Defesa 0":"Dano +"+i.bonusDamage.ToString("0.#")+"\nVida +"+i.bonusHealth.ToString("0.#")+" · Defesa +"+i.bonusDefense.ToString("0.#");
 }

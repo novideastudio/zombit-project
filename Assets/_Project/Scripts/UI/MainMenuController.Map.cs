@@ -62,7 +62,7 @@ public partial class MainMenuController
         var markerLayer = UIFactory.Node("MapMarkerLayer", mapInner);
         UIFactory.Stretch(markerLayer, 0f, 0f, 1f, 1f);
         markerLayer.localScale = Vector3.one;
-        // Caminhos embutidos na arte: sem sobreposicao de trajetos antigos.   // fica atras dos marcadores (primeiro filho)
+        BuildPcCampaignRoutes(markerLayer, save);
         Canvas.ForceUpdateCanvases();
 
         int markerCount = 0;
@@ -88,9 +88,9 @@ public partial class MainMenuController
                 if (GameDatabase.IsUnlocked(l, save) && save.HighestCompleted(l.id) < (int)Difficulty.Normal) { start = l; break; }
         if (start == null) start = GameDatabase.Locations[0];
 
-        // Esta tela possui layout responsivo proprio; nao aplicar o antigo Layout_map.prefab,
-        // que sobrescreve âncoras e dimensoes do mapa/cartoes redesenhados. As outras telas
-        // continuam utilizando os prefabs editaveis normalmente.
+        // O Screen_map canonico e gerado a partir desta composicao atual pelo comando de bake.
+        // As ancoras de dados dinamicos sao protegidas por UIPrefabLayoutOverride; arte e paineis
+        // permanecem ajustaveis no Editor Visual.
         Show("map");
         SelectLocation(start);
         SetupPcCampaign(s, mapArea);
@@ -403,6 +403,7 @@ public partial class MainMenuController
 
     void OnStartMission()
     {
+        GameSession.Mode = GameMode.Campaign;
         if (selectedLoc == null) return;
         if (!ConfirmProgressionRisk()) return; // ZOMBIT_PROGRESSION_GATE_V1
         GameSession.Location = selectedLoc;

@@ -34,11 +34,13 @@ public class WaveBackground : MonoBehaviour
         bool isRange = GameSession.IsRange || (GameSession.Location != null && GameSession.Location.id == "range");
         profile = isRange
             ? SceneBackgrounds.Get("range")
-            : (string.IsNullOrEmpty(sceneId) ? SceneBackgrounds.ForLocation(GameSession.Location) : SceneBackgrounds.Get(sceneId));
+            : GameSession.IsRefugeDefense
+                ? SceneBackgrounds.Get("military_defense")
+                : (string.IsNullOrEmpty(sceneId) ? SceneBackgrounds.ForLocation(GameSession.Location) : SceneBackgrounds.Get(sceneId));
 
         var sp = isRange ? Resources.Load<Sprite>(profile.path) : ArtLoader.Get(profile.path);
         if (isRange && sp == null)
-            Debug.LogError($"Zombit: o fundo exclusivo do estande não foi carregado: Resources/{profile.path}. Confira wave_range.png e seu .meta.");
+            Debug.LogError($"Zombit: o fundo exclusivo do estande não foi carregado: Resources/{profile.path}. Confira wave_training.png e seu .meta.");
         if (sp == null && profile.id != SceneBackgrounds.DefaultId)
         {
             Debug.LogWarning($"Zombit: cenario '{profile.path}' nao encontrado; usando o padrao.");

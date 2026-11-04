@@ -93,7 +93,8 @@ public sealed class SpitProjectile : MonoBehaviour
             impact.z = 0f;
             if ((chest - impact).sqrMagnitude <= HitRadius * HitRadius)
             {
-                intended.Take(damage);
+                if (!RefugeDefenseController.TryReceiveGeneratorDamage(intended, damage))
+                    intended.Take(damage);
                 PixelCombatVFX.SpitImpact(chest);
                 return;
             }

@@ -68,12 +68,10 @@ public sealed class SquadSkillsOverlay : MonoBehaviour
         // Comandos do jogador.
         var cmd = UIKit.Frame(panel, "Commands", UIKit.Col.Surface, UIKit.Col.Border, 1.5f);
         UIFactory.Place(cmd, new Vector2(0.5f, 0f), new Vector2(0f, 110f), new Vector2(panelW - 80f, 96f));
-        var active = HeroSquad.PrimaryMember != null && HeroSquad.PrimaryMember.stats ? HeroSquad.PrimaryMember.stats.GetComponent<ActiveSkills>() : null;
-        string cd = active != null ? $"{active.shockCooldown:0}s" : "14s";
         string gold = ColorUtility.ToHtmlStringRGB(UIKit.Col.Gold);
         var ct = Txt(cmd,
-            $"<color=#{gold}>[ESPAÇO]</color> ou <color=#{gold}>[TOQUE]</color> no botão Empurrar: empurra, atordoa e fere quem está perto (recarga {cd}).\n" +
-            $"<color=#{gold}>[CLIQUE]</color> no zumbi: todo o esquadrão foca nele    <color=#{gold}>[I]</color> Mochila    <color=#{gold}>[H]</color> Habilidades    <color=#{gold}>[ESC]</color> Pausa",
+            $"<color=#{gold}>[CLIQUE]</color> em um zumbi: todo o esquadrão concentra os disparos nele.\n" +
+            $"<color=#{gold}>[I]</color> Mochila    <color=#{gold}>[H]</color> Habilidades    <color=#{gold}>[ESC]</color> Pausa",
             17f, Color.white, TextAlignmentOptions.MidlineLeft);
         ct.fontStyle = FontStyles.Normal;
         ct.textWrappingMode = TextWrappingModes.Normal;

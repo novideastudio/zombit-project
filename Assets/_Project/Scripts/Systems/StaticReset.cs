@@ -21,6 +21,7 @@ public static class StaticReset
         GameEvents.HordeFury = false;
         ItemCatalog.Clear();
         HeroSquad.Clear();
+        RefugeDefenseController.ResetRuntime();
 
         GameEvents.EnemyKilled = null;
         GameEvents.WaveChanged = null;

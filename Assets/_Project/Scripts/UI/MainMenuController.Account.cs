@@ -98,7 +98,13 @@ public partial class MainMenuController
                 {
                     nicknameForAccount = false;
                     accountNickFirst = false;
-                    Show("main");
+                    if (GameSession.OpenHomeOnLoad && GameSession.Save != null)
+                    {
+                        GameSession.OpenHomeOnLoad = false;
+                        GameSession.OpenMapOnLoad = false;
+                        ShowHome();
+                    }
+                    else Show("main");
                 }
                 else RefreshAccountLabel();
                 break;

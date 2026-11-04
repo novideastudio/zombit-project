@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SurvivorAsset
   id: assaulter
   order: 0
-  displayName: Assaulter
+  displayName: Assaltante
   role: Equilibrado
   description: "Vers\xE1til em qualquer situa\xE7\xE3o. Bom dano, boa resist\xEAncia e capaz de lidar com diferentes tipos de inimigos."
   utilityName: Granada

@@ -798,11 +798,14 @@ public sealed partial class MissionInventoryOverlay : MonoBehaviour
 
         int upCost = ItemUpgrade.Cost(item), upGold = ItemUpgrade.GoldCost(item);
         bool maxed = item.upgradeLevel >= ItemUpgrade.MaxFor(item);
-        string upLabel = maxed ? "NÍVEL MÁXIMO  +" + item.upgradeLevel
+        bool campaignEconomy = GameSession.IsCampaign;
+        string upLabel = !campaignEconomy ? "MELHORIA DISPONÍVEL NA CAMPANHA"
+            : maxed ? "NÍVEL MÁXIMO  +" + item.upgradeLevel
             : "MELHORAR  +" + item.upgradeLevel + " → +" + (item.upgradeLevel + 1) + "   ·   " + upCost + " SUCATA + " + upGold + " OURO";
-        var up = UIKit.Button(panel, upLabel, () => UpgradeItem(item), UIKit.BtnStyle.Primary, 22, "UpgradeMapItem");
+        System.Action upgradeAction = campaignEconomy ? (System.Action)(() => UpgradeItem(item)) : null;
+        var up = UIKit.Button(panel, upLabel, upgradeAction, UIKit.BtnStyle.Primary, 22, "UpgradeMapItem");
         UIFactory.Place((RectTransform)up.transform, InvBL, new Vector2(pad, 84f), new Vector2(cw, 52f));
-        up.interactable = !maxed && Save != null && Save.scrap >= upCost && Save.gold >= upGold;
+        up.interactable = campaignEconomy && !maxed && Save != null && Save.scrap >= upCost && Save.gold >= upGold;
 
         if (equipped)
         {
@@ -814,8 +817,12 @@ public sealed partial class MissionInventoryOverlay : MonoBehaviour
             float half = (cw - 12f) * 0.5f;
             var eq = UIKit.Button(panel, "EQUIPAR", () => EquipItem(item), UIKit.BtnStyle.Success, 24, "EquipMapItem");
             UIFactory.Place((RectTransform)eq.transform, InvBL, new Vector2(pad, 16f), new Vector2(half, 60f));
-            var sl = UIKit.Button(panel, "VENDER", () => SellItem(item), UIKit.BtnStyle.Danger, 24, "SellMapItem");
+            bool canSell = GameSession.IsCampaign;
+            System.Action sellAction = canSell ? (System.Action)(() => SellItem(item)) : null;
+            var sl = UIKit.Button(panel, canSell ? "VENDER" : "VENDA NA CAMPANHA",
+                sellAction, UIKit.BtnStyle.Danger, 20, "SellMapItem");
             UIFactory.Place((RectTransform)sl.transform, InvBL, new Vector2(pad + half + 12f, 16f), new Vector2(half, 60f));
+            sl.interactable = canSell;
         }
     }
 
@@ -823,6 +830,7 @@ public sealed partial class MissionInventoryOverlay : MonoBehaviour
     void UpgradeItem(ItemInstance item)
     {
         if (item == null) return;
+        if (!GameSession.IsCampaign) { Toast("Melhorias disponíveis somente na campanha."); return; }
         if (Save == null) { Toast("Melhoria indisponível nesta partida."); return; }
         bool wasEquipped = IsEquipped(item);
         if (!ItemUpgrade.TryUpgrade(Save, item, out string msg)) { Toast(msg); return; }
@@ -845,7 +853,11 @@ public sealed partial class MissionInventoryOverlay : MonoBehaviour
     void UnequipItem(ItemInstance item)
     {
         if (item == null) return;
-        if (inv.Items.Count >= inv.capacity) { Toast("Mochila cheia. Venda ou equipe algum item primeiro."); return; }
+        if (inv.Items.Count >= inv.capacity)
+        {
+            Toast(GameSession.IsCampaign ? "Mochila cheia. Venda ou equipe algum item primeiro." : "Mochila cheia. Equipe algum item antes de desequipar.");
+            return;
+        }
         inv.Unequip(item.slot, stats);
         if (category != InvAll && category != (int)item.slot) category = (int)item.slot;
         Toast("Desequipado: " + item.name);
@@ -855,6 +867,7 @@ public sealed partial class MissionInventoryOverlay : MonoBehaviour
 
     void SellItem(ItemInstance item)
     {
+        if (!GameSession.IsCampaign) { Toast("Vendas disponíveis somente na campanha."); return; }
         if (item == null || !inv.Contains(item)) return;
         int value = Mathf.Max(1, item.sellValue);
         inv.Sell(item);

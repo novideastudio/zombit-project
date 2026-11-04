@@ -142,6 +142,25 @@ public static class SceneBackgrounds
             },
             smokes = new[] { new Vector2(0.50f, 0.20f) },
         });
+        // Estande de tiro: usa o mapa dedicado wave_training.png.
+        // O cenário já contém iluminação e alvos pintados, então não adicionamos efeitos extras.
+        Add(new SceneProfile
+        {
+            id = "range", groundRow = 0.68f, sun = Vector2.zero, sunSize = 0f,
+        });
+        profiles["range"].path = Dir + "wave_training";
+
+        Add(new SceneProfile
+        {
+            id = "military_defense", groundRow = 0.65f, sun = new Vector2(0.387f, 0.25f), sunSize = 0.85f,
+            lamps = new[]
+            {
+                Lp(0.109f, 0.09f, 0.9f, 0.34f, true), Lp(0.655f, 0.065f, 0.9f, 0.34f, true), Lp(0.561f, 0.088f, 0.7f, 0.28f, true),
+                Lp(0.325f, 0.426f, 0.55f, 0.24f, true), Lp(0.394f, 0.426f, 0.55f, 0.24f, true), Lp(0.447f, 0.426f, 0.55f, 0.24f, true),
+                Lp(0.615f, 0.425f, 0.65f, 0.25f, true), Lp(0.793f, 0.422f, 0.65f, 0.25f, true),
+            },
+            smokes = new[] { new Vector2(0.50f, 0.20f), new Vector2(0.80f, 0.25f) },
+        });
         Add(new SceneProfile
         {
             id = "rpd", groundRow = 0.73f, sun = new Vector2(0.233f, 0.31f), sunSize = 1.0f,

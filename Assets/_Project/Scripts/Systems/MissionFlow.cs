@@ -82,6 +82,9 @@ public partial class MissionFlow : MonoBehaviour
     public void AbandonToMap()
     {
         if (GameSession.IsRange) { ExitTrainingToMap(); return; }
+        if (GameSession.IsLastStand) { FinishLastStand(false, true); return; }
+        if (GameSession.IsBossRush) { FinishBossRush(false, true); return; }
+        if (GameSession.IsRefugeDefense) { FinishRefugeDefense(false, true); return; }
         if (done) return;
         done = true;
 
@@ -181,8 +184,11 @@ public partial class MissionFlow : MonoBehaviour
 
     void Finish(bool win)
     {
-        // Training events must never run campaign rewards or penalties.
+        // Training and special modes have independent reward rules.
         if (GameSession.IsRange) return;
+        if (GameSession.IsLastStand) { FinishLastStand(win, false); return; }
+        if (GameSession.IsBossRush) { FinishBossRush(win, false); return; }
+        if (GameSession.IsRefugeDefense) { FinishRefugeDefense(win, false); return; }
         if (done) return;
         done = true;
 
@@ -318,6 +324,140 @@ public partial class MissionFlow : MonoBehaviour
         Time.timeScale = 0f;
         BuildPanel(win, goldGain, scrapGain, unlockText, drops, recovered.Count, soldCount, soldGold, saved, penaltyText, stars, hpRatio,
             fallenNote, primaryAlive);
+    }
+
+    void FinishLastStand(bool evacuated, bool abandoned)
+    {
+        if (done) return;
+        done = true;
+
+        var save = GameSession.Save;
+        var controller = FindFirstObjectByType<LastStandController>();
+        float survived = controller != null ? controller.ElapsedSeconds : elapsed;
+        int stage = controller != null ? controller.Stage : 1 + Mathf.FloorToInt(survived / LastStandController.StageSeconds);
+        int kills = controller != null ? controller.Kills : (loot != null ? loot.kills : 0);
+        int bosses = controller != null ? controller.BossesDefeated : (loot != null ? loot.bossesKilled : 0);
+        int fullReward = controller != null
+            ? controller.CalculateResistanceTokens(false)
+            : Mathf.FloorToInt(survived / 60f);
+        // Evacuar converte 100% da recompensa e concede o bonus de extracao.
+        // Ser eliminado ou abandonar cedo ainda preserva metade das fichas, sem penalidade de equipamento.
+        int tokens = evacuated
+            ? (controller != null ? controller.CalculateResistanceTokens(true) : Mathf.RoundToInt(fullReward * 1.15f))
+            : Mathf.CeilToInt(fullReward * 0.5f);
+        int seconds = Mathf.Max(0, Mathf.FloorToInt(survived));
+        bool newRecord = false;
+        bool saved = false;
+
+        if (save != null)
+        {
+            save.resistanceTokens = Mathf.Max(0, save.resistanceTokens + tokens);
+            newRecord = seconds > 0 && (seconds > save.bestLastStandSeconds || stage > save.bestLastStandStage);
+            save.bestLastStandSeconds = Mathf.Max(save.bestLastStandSeconds, seconds);
+            save.bestLastStandStage = Mathf.Max(save.bestLastStandStage, stage);
+            save.activeRun = new ActiveRun();
+            if (!GameSession.DebugRun)
+            {
+                try { SaveSystem.Save(save); saved = true; }
+                catch (Exception e) { Debug.LogWarning("Zombit: falha ao salvar o resultado do Last Stand: " + e.Message); }
+            }
+        }
+
+        Time.timeScale = 0f;
+        BuildLastStandPanel(evacuated, abandoned, seconds, stage, kills, bosses, tokens, newRecord, saved);
+    }
+
+    void BuildLastStandPanel(bool evacuated, bool abandoned, int seconds, int stage, int kills,
+        int bosses, int tokens, bool newRecord, bool saved)
+    {
+        var loc = GameSession.Location;
+        var c = UIFactory.MakeCanvas("LastStandResultCanvas", 110);
+        var art = UIFactory.Img(c.transform, Color.white, "ResultBackdropArt");
+        art.sprite = loc != null ? ArtLoader.Get(SceneBackgrounds.PathFor(loc)) : ArtLoader.Get(SceneBackgrounds.DefaultPath);
+        art.preserveAspect = false;
+        art.color = new Color(0.48f, 0.56f, 0.60f, 0.48f);
+        UIFactory.Stretch(art.rectTransform);
+        art.raycastTarget = false;
+        art.transform.SetAsFirstSibling();
+
+        var dim = UIFactory.Img(c.transform, new Color(0.004f, 0.009f, 0.014f, 0.88f), "Dim");
+        UIFactory.Stretch(dim.rectTransform);
+        dim.raycastTarget = false;
+
+        var panel = UIKit.Frame(c.transform, "LastStandResultPanel", new Color(0.018f, 0.031f, 0.043f, 0.96f),
+            new Color(0.91f, 0.29f, 0.12f, 0.96f), 2.5f);
+        UIFactory.Place(panel, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1320f, 700f));
+
+        string titleText = evacuated ? "EXTRACTION SUCCESSFUL" : abandoned ? "RUN ENDED" : "SQUAD ELIMINATED";
+        var title = UIFactory.Txt(panel, titleText, 54, TextAlignmentOptions.Center,
+            evacuated ? new Color(1f, 0.73f, 0.32f) : new Color(1f, 0.35f, 0.27f), "ResultTitle");
+        UIFactory.Place(title.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -48f), new Vector2(1180f, 76f));
+        title.fontStyle = FontStyles.Bold;
+
+        var subtitle = UIFactory.Txt(panel, evacuated
+                ? "You made it out. Your Resistance Tokens have been secured."
+                : abandoned ? "The operation ended early. 50% of the calculated Resistance Tokens were secured."
+                : "Your squad was overwhelmed. 50% of the calculated Resistance Tokens were secured.",
+            23, TextAlignmentOptions.Center, new Color(0.78f, 0.84f, 0.87f), "ResultSubtitle");
+        UIFactory.Place(subtitle.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -132f), new Vector2(1160f, 42f));
+
+        string time = TimeSpan.FromSeconds(Mathf.Max(0, seconds)).ToString(seconds >= 3600 ? @"h\:mm\:ss" : @"mm\:ss");
+        ResultMetric(panel, "SURVIVAL TIME", time, -420f);
+        ResultMetric(panel, "STAGE REACHED", stage.ToString("00"), 0f);
+        ResultMetric(panel, "BOSSES DEFEATED", bosses.ToString("N0"), 420f);
+
+        var killLine = UIFactory.Txt(panel, "ZOMBIES ELIMINATED  " + kills.ToString("N0"), 22,
+            TextAlignmentOptions.Center, new Color(0.76f, 0.83f, 0.86f), "KillsLine");
+        UIFactory.Place(killLine.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, -88f), new Vector2(900f, 42f));
+
+        var reward = UIFactory.Txt(panel, "+" + tokens.ToString("N0") + " RESISTANCE TOKENS", 37,
+            TextAlignmentOptions.Center, new Color(1f, 0.79f, 0.37f), "ResistanceReward");
+        UIFactory.Place(reward.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, -160f), new Vector2(1050f, 60f));
+        reward.fontStyle = FontStyles.Bold;
+
+        int bestSeconds = GameSession.Save != null ? GameSession.Save.bestLastStandSeconds : seconds;
+        int bestStage = GameSession.Save != null ? GameSession.Save.bestLastStandStage : stage;
+        var bestTimeSpan = TimeSpan.FromSeconds(Mathf.Max(0, bestSeconds));
+        string bestTime = bestTimeSpan.TotalHours >= 1
+            ? bestTimeSpan.ToString(@"h\:mm\:ss") : bestTimeSpan.ToString(@"mm\:ss");
+        string recordLabel = newRecord ? "NEW PERSONAL RECORD!" : "BEST: " + bestTime + "  ·  STAGE " + bestStage.ToString("00");
+        var record = UIFactory.Txt(panel, recordLabel,
+            22, TextAlignmentOptions.Center, newRecord ? new Color(1f, 0.73f, 0.25f) : new Color(0.60f, 0.70f, 0.74f), "Record");
+        UIFactory.Place(record.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, -218f), new Vector2(900f, 40f));
+
+        string saveStatus = GameSession.DebugRun ? "TEST RUN — progress was not saved."
+            : saved ? "Progress saved." : "Save failed. Check the Unity Console.";
+        var status = UIFactory.Txt(panel, saveStatus, 18, TextAlignmentOptions.Center,
+            saved || GameSession.DebugRun ? new Color(0.65f, 0.75f, 0.78f) : new Color(1f, 0.35f, 0.27f), "SaveStatus");
+        UIFactory.Place(status.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 128f), new Vector2(1000f, 32f));
+
+        var back = UIFactory.Btn(panel, "BACK TO CAMP", 24, () =>
+        {
+            Time.timeScale = 1f;
+            GameSession.Mode = GameMode.Campaign;
+            GameSession.OpenMapOnLoad = false;
+            SceneManager.LoadScene(GameSession.MenuSceneIndex);
+        }, new Color(0.12f, 0.17f, 0.20f), "BackToCamp");
+        UIFactory.Place((RectTransform)back.transform, new Vector2(0.5f, 0f), new Vector2(-235f, 40f), new Vector2(360f, 70f));
+
+        var retry = UIFactory.Btn(panel, "PLAY AGAIN", 24, () =>
+        {
+            Time.timeScale = 1f;
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }, new Color(0.56f, 0.13f, 0.08f), "RetryLastStand");
+        UIFactory.Place((RectTransform)retry.transform, new Vector2(0.5f, 0f), new Vector2(235f, 40f), new Vector2(360f, 70f));
+    }
+
+    void ResultMetric(Transform parent, string label, string value, float x)
+    {
+        var box = UIKit.Frame(parent, "Metric_" + label.Replace(" ", ""),
+            new Color(0.035f, 0.055f, 0.065f, 0.98f), new Color(0.25f, 0.34f, 0.38f, 0.85f), 1.5f);
+        UIFactory.Place(box, new Vector2(0.5f, 0.5f), new Vector2(x, 24f), new Vector2(340f, 132f));
+        var title = UIFactory.Txt(box, label, 17, TextAlignmentOptions.Center, new Color(0.63f, 0.73f, 0.77f), "Label");
+        UIFactory.Place(title.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -16f), new Vector2(310f, 30f));
+        var valueText = UIFactory.Txt(box, value, 38, TextAlignmentOptions.Center, Color.white, "Value");
+        UIFactory.Place(valueText.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 15f), new Vector2(310f, 58f));
+        valueText.fontStyle = FontStyles.Bold;
     }
 
     /// <summary>"a, b e c".</summary>

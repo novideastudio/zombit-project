@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SurvivorAsset
   id: engineer
   order: 3
-  displayName: Engineer
+  displayName: Engenheiro
   role: "Suporte t\xE1tico"
   description: "Constr\xF3i, repara e fornece recursos. Usa torretas e a M249: pente enorme, pouca precis\xE3o."
   utilityName: Torreta

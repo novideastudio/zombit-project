@@ -95,6 +95,7 @@ public class PlayerStats : MonoBehaviour
 
     void OnKill(Enemy e)
     {
+        if (!GameSession.IsCampaign) return; // Modos especiais possuem economias proprias e nao farmam XP da campanha.
         if (health != null && health.Current <= 0f) return;   // quem caiu nao ganha XP
         if (e != null && e.data != null) AddXpScaled(e.data.xp * Balance.XpScale(GameSession.Location) * Mathf.Max(0f, xpShare));
     }

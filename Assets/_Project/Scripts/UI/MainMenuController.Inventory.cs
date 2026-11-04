@@ -291,6 +291,7 @@ public partial class MainMenuController
                 UIFactory.Stretch(up.rectTransform, 0f, 0.55f, 0.94f, 0.98f);
             }
         }
+        ItemTileStyling.Apply(b.transform, item); // DAILY_COMMERCE_RARITY_V1
         return b;
     }
 
@@ -720,6 +721,8 @@ public partial class MainMenuController
     // Equipa no sobrevivente que esta sendo editado. O item sai da mochila; o que estava no slot volta para ela.
     void EquipMapItem(string uid)
     {
+        if (!TimedCommerce.CanEquip(GameSession.Save, invSurvivorId, uid)) { Toast("Nível insuficiente para equipar este item."); return; } // DAILY_COMMERCE_MENU_LEVEL_V1
+
         var save = GameSession.Save;
         if (save == null || save.inventory == null) return;
         var progress = save.GetProgress(invSurvivorId);

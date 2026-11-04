@@ -5,10 +5,12 @@ using UnityEngine;
 public class UITheme : ScriptableObject
 {
     [Header("Interface")]
-    [Tooltip("LIGADO = telas do menu vem dos prefabs em Resources/UI/Screens (editaveis na Unity). DESLIGADO = UI montada por codigo, como antes.")]
+    [Tooltip("LIGADO = telas usam prefabs oficiais Screen_* em Resources/UI/Screens e componentes em Resources/UI/Components (editaveis na Unity). DESLIGADO = UI montada por codigo, como antes.")]
     public bool useEditorUI = false;
     [Tooltip("DESLIGADO (recomendado) = botoes dos prefabs ficam EXATAMENTE como voce editou (cores, ColorBlock, fonte). LIGADO = o codigo reaplica o realce dourado/negrito do menu por cima dos prefabs.")]
     public bool polishPrefabButtons = false;
+    [Tooltip("Quando ativado, registra no Console um resumo dos elementos aplicados por cada Screen_* ao abrir uma tela. Use apenas durante diagnóstico.")]
+    public bool logLayoutApplyDiagnostics = false;
 
     [Header("Fonte")]
     [Tooltip("Vazio = fonte padrao do TextMeshPro")]

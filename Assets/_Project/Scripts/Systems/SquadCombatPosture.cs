@@ -54,7 +54,7 @@ public sealed class SquadCombatPosture : MonoBehaviour
         postureCanvas=UIFactory.MakeCanvas("CombatPostureCanvas",35);
         toggle=UIFactory.Btn(postureCanvas.transform,"",20,Toggle,
             new Color(0.06f,0.10f,0.13f,0.95f),"CombatPostureToggle");
-        // Lower right, away from left squad cards and centre shock button.
+        // Lower right, away from the squad cards.
         UIFactory.Place((RectTransform)toggle.transform,new Vector2(1f,0f),
             new Vector2(-18f,18f),new Vector2(330f,86f));
         label=toggle.GetComponentInChildren<TMP_Text>(true);

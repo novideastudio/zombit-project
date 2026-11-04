@@ -34,13 +34,13 @@ public static class GameDatabase
         return new List<SurvivorDef>
         {
             new SurvivorDef {
-                id = "assaulter", name = "Assaulter", role = "Equilibrado",
+                id = "assaulter", name = "Assaltante", role = "Equilibrado",
                 description = "Versátil em qualquer situação. Bom dano, boa resistência e capaz de lidar com diferentes tipos de inimigos.",
                 utilityName = "Granada", utilityDesc = "A cada 8 segundos lança uma granada que causa dano em área.",
                 color = new Color(0.35f, 0.5f, 0.9f), utility = UtilityType.Grenade, weaponId = WeaponCatalog.M4A1
             },
             new SurvivorDef {
-                id = "sniper", name = "Sniper", role = "Dano e alcance",
+                id = "sniper", name = "Atirador", role = "Dano e alcance",
                 description = "Especialista em eliminações à longa distância. Com a SCAR-20, cada tiro é devastador, alcança muito longe e atravessa até três zumbis em fila, mas a cadência é baixa.",
                 utilityName = "Tiro de precisão", utilityDesc = "25% de chance de acerto crítico (dano x2,5) e mira mais precisa.",
                 color = new Color(0.75f, 0.3f, 0.3f), utility = UtilityType.Precision,
@@ -48,21 +48,21 @@ public static class GameDatabase
                 accuracyBonus = 0.15f, critChance = 0.25f, critMult = 2.5f
             },
             new SurvivorDef {
-                id = "medic", name = "Medic", role = "Sustentação",
+                id = "medic", name = "Médico", role = "Sustentação",
                 description = "Mantém a equipe viva. Resistente e sempre se curando. A MP5-SD dispara muito rápido, com dano baixo por tiro.",
                 utilityName = "Primeiros socorros", utilityDesc = "Regenera 1,5% da vida máxima por segundo (a dele e a do parceiro no modo dupla).",
                 color = new Color(0.3f, 0.8f, 0.45f), utility = UtilityType.FieldMedic,
                 healthMult = 1.1f, weaponId = WeaponCatalog.Mp5sd
             },
             new SurvivorDef {
-                id = "engineer", name = "Engineer", role = "Suporte tático",
+                id = "engineer", name = "Engenheiro", role = "Suporte tático",
                 description = "Constrói, repara e fornece recursos. Usa torretas e a M249: pente enorme, pouca precisão.",
                 utilityName = "Torreta", utilityDesc = "Instala uma torreta automática que atira junto com ele.",
                 color = new Color(0.95f, 0.6f, 0.15f), utility = UtilityType.Turret,
                 weaponId = WeaponCatalog.M249
             },
             new SurvivorDef {
-                id = "explorer", name = "Explorer", role = "Coleta e recompensa",
+                id = "explorer", name = "Explorador", role = "Coleta e recompensa",
                 description = "Explora áreas, encontra recursos e itens raros. A MAC-10 é a arma mais rápida, com pente de 40, e ele rende muito mais.",
                 utilityName = "Saqueador", utilityDesc = "+50% de ouro, +50% de chance de itens e +20% de XP.",
                 color = new Color(0.8f, 0.7f, 0.45f), utility = UtilityType.Scavenger,

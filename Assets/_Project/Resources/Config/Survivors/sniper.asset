@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SurvivorAsset
   id: sniper
   order: 1
-  displayName: Sniper
+  displayName: Atirador
   role: Dano e alcance
   description: "Especialista em elimina\xE7\xF5es \xE0 longa dist\xE2ncia. Com a SCAR-20, cada tiro \xE9 devastador e alcan\xE7a muito longe, mas a cad\xEAncia \xE9 baixa."
   utilityName: "Tiro de precis\xE3o"

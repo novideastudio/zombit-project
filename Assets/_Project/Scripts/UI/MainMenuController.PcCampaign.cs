@@ -215,7 +215,52 @@ public partial class MainMenuController
         SelectLocation(loc);SetPcCampaignDetails(true);pcCampaignVisualKey=null;RefreshPcCampaignStyle();
     }
 
-    // Cartões metálicos com miniaturas reais das regiões; todos os recursos são assets substituíveis.
+    // Caminho tactico entre os locais principais e as duas rotas laterais.
+    void BuildPcCampaignRoutes(Transform parent, SaveData save)
+    {
+        if(parent==null)return;
+        var go=new GameObject("CampaignProgressRoutes",typeof(RectTransform),typeof(CanvasRenderer),typeof(UIDashedPath));
+        var rt=(RectTransform)go.transform;rt.SetParent(parent,false);ExactMapRect(rt,Vector2.zero,Vector2.one);
+        var route=go.GetComponent<UIDashedPath>();route.thickness=4f;route.dash=13f;route.gap=10f;route.color=Color.white;route.raycastTarget=false;
+        AddCampaignRoute(route,"suburbio","residencial",save,0.05f);
+        AddCampaignRoute(route,"residencial","shopping",save,-0.08f);
+        AddCampaignRoute(route,"shopping","metro",save,0.08f);
+        AddCampaignRoute(route,"metro","centro",save,-0.09f);
+        AddCampaignRoute(route,"centro","base",save,0.10f);
+        AddCampaignRoute(route,"suburbio","hospital",save,-0.08f);
+        AddCampaignRoute(route,"hospital","delegacia",save,0.09f);
+        AddCampaignRoute(route,"centro","industrial",save,-0.06f);
+        go.transform.SetAsFirstSibling();
+    }
+
+    void AddCampaignRoute(UIDashedPath path,string from,string to,SaveData save,float bend)
+    {
+        Vector2 a=CampaignNodeCenter(from),b=CampaignNodeCenter(to);
+        bool active=save!=null && (save.CompletedLevelCount(from)>0 || save.CompletedLevelCount(to)>0);
+        Color c=active?new Color(1f,0.61f,0.23f,0.72f):new Color(0.58f,0.71f,0.76f,0.42f);
+        path.Add(a,b,c,bend);
+    }
+
+    static Vector2 CampaignNodeCenter(string id)
+    {
+        float x=0f,top=0f,w=0f,h=0f;
+        switch(id)
+        {
+            case "suburbio":    x=.033f;top=.165f;w=.217f;h=.079f;break;
+            case "residencial": x=.240f;top=.256f;w=.277f;h=.082f;break;
+            case "shopping":    x=.392f;top=.449f;w=.266f;h=.083f;break;
+            case "hospital":    x=.052f;top=.510f;w=.241f;h=.075f;break;
+            case "delegacia":   x=.300f;top=.682f;w=.249f;h=.077f;break;
+            case "metro":       x=.609f;top=.313f;w=.267f;h=.077f;break;
+            case "centro":      x=.669f;top=.526f;w=.271f;h=.075f;break;
+            case "base":        x=.683f;top=.152f;w=.246f;h=.082f;break;
+            case "industrial":  x=.634f;top=.733f;w=.309f;h=.078f;break;
+        }
+        return new Vector2(x+w*0.5f,1f-top-h*0.5f);
+    }
+
+    // Cartoes com miniaturas recortadas por mascara (sem esticar as artes panoramicas),
+    // nome, nivel recomendado, progresso e estado de desbloqueio.
     void BuildPcCampaignNode(Transform parent,LocationDef loc,int index,SaveData save)
     {
         if(parent==null || loc==null)return;
@@ -243,30 +288,53 @@ public partial class MainMenuController
         var button=go.GetComponent<Button>();button.targetGraphic=image;button.transition=Selectable.Transition.None;
         button.onClick.AddListener(()=>{ZombitAudio.PlayUI();TogglePcCampaignLocation(location);});
 
-        // Miniatura regional à direita, escurecida para manter a leitura do nome.
+        // Thumb a direita: RectMask2D + EnvelopeParent faz crop sem deformar proporcoes.
+        var thumbViewGo=new GameObject("LocationThumbnailViewport",typeof(RectTransform),typeof(RectMask2D));
+        var thumbView=(RectTransform)thumbViewGo.transform;thumbView.SetParent(rt,false);
+        ExactMapRect(thumbView,new Vector2(.585f,.07f),new Vector2(.98f,.93f));
         var artGo=new GameObject("LocationThumbnail",typeof(RectTransform),typeof(CanvasRenderer),typeof(Image));
-        var artRt=(RectTransform)artGo.transform;artRt.SetParent(rt,false);ExactMapRect(artRt,new Vector2(.555f,.07f),new Vector2(.98f,.93f));
-        var art=artGo.GetComponent<Image>();art.sprite=ArtLoader.Get(CampaignThumbnailPath(loc))??ArtLoader.Get("Art/Map/Locations/"+loc.id)??ArtLoader.Get("Art/Map/Locations/suburbio");
-        art.type=Image.Type.Simple;art.preserveAspect=false;art.raycastTarget=false;
-        if(!unlocked)art.color=new Color(.54f,.59f,.60f,1f);
-        var artShade=UIFactory.Img(rt,new Color(.008f,.014f,.018f,unlocked ? 0.18f : 0.48f),"ThumbnailShade");
-        UIFactory.Stretch(artShade.rectTransform,.555f,.07f,.98f,.93f);artShade.raycastTarget=false;
-        var leftShade=UIFactory.Img(rt,new Color(.006f,.012f,.017f,.68f),"InfoShade");
-        UIFactory.Stretch(leftShade.rectTransform,.025f,.07f,.62f,.93f);leftShade.raycastTarget=false;
+        var artRt=(RectTransform)artGo.transform;artRt.SetParent(thumbView,false);
+        artRt.anchorMin=Vector2.zero;artRt.anchorMax=Vector2.one;artRt.pivot=new Vector2(.5f,.5f);
+        artRt.offsetMin=Vector2.zero;artRt.offsetMax=Vector2.zero;
+        var art=artGo.GetComponent<Image>();
+        art.sprite=ArtLoader.Get(CampaignThumbnailPath(loc))??ArtLoader.Get("Art/Map/Locations/"+loc.id)??ArtLoader.Get("Art/Map/Locations/suburbio");
+        art.raycastTarget=false;
+        if(art.sprite!=null)
+        {
+            var fitter=artGo.AddComponent<AspectRatioFitter>();
+            fitter.aspectMode=AspectRatioFitter.AspectMode.EnvelopeParent;
+            fitter.aspectRatio=art.sprite.rect.width/Mathf.Max(1f,art.sprite.rect.height);
+        }
+        if(!unlocked)art.color=new Color(.57f,.61f,.63f,1f);
+        var artShade=UIFactory.Img(thumbView,new Color(.008f,.014f,.018f,unlocked ? 0.20f : 0.56f),"ThumbnailShade");
+        UIFactory.Stretch(artShade.rectTransform);artShade.raycastTarget=false;
+        var leftShade=UIFactory.Img(rt,new Color(.006f,.012f,.017f,.78f),"InfoShade");
+        UIFactory.Stretch(leftShade.rectTransform,0f,.02f,.615f,.98f);leftShade.raycastTarget=false;
 
-        var numPlate=PcCampImage(rt,"NumberBadge","gold",4,5,0,0); // size is controlled below in normalized anchors
-        ExactMapRect(numPlate.rectTransform,new Vector2(.025f,.09f),new Vector2(.215f,.91f));
+        var numPlate=PcCampImage(rt,"NumberBadge","gold",4,5,0,0);
+        ExactMapRect(numPlate.rectTransform,new Vector2(.025f,.13f),new Vector2(.205f,.87f));
         numPlate.raycastTarget=false;pcCampaignNodeBadges[loc.id]=numPlate;
-        var num=PcCampText(rt,"Number",MapDisplayNumber(loc).ToString("00"),0,0,1,1,28,unlocked?UIKit.Col.Gold:new Color(.53f,.58f,.59f),false,TextAlignmentOptions.Center);
-        ExactMapRect(num.rectTransform,new Vector2(.025f,.09f),new Vector2(.215f,.91f));num.raycastTarget=false;
+        var num=PcCampText(rt,"Number",MapDisplayNumber(loc).ToString("00"),0,0,1,1,25,unlocked?UIKit.Col.Gold:new Color(.53f,.58f,.59f),false,TextAlignmentOptions.Center);
+        ExactMapRect(num.rectTransform,new Vector2(.025f,.13f),new Vector2(.205f,.87f));num.raycastTarget=false;
 
-        var name=PcCampText(rt,"LocationName",MapDisplayName(loc),0,0,1,1,16,unlocked?Color.white:new Color(.66f,.71f,.72f),false,TextAlignmentOptions.MidlineLeft);
-        ExactMapRect(name.rectTransform,new Vector2(.235f,.49f),new Vector2(.76f,.89f));
-        name.characterSpacing=.25f;name.enableAutoSizing=true;name.fontSizeMin=10f;name.fontSizeMax=16f;name.overflowMode=TextOverflowModes.Truncate;name.raycastTarget=false;
+        var name=PcCampText(rt,"LocationName",MapDisplayName(loc),0,0,1,1,15,unlocked?Color.white:new Color(.66f,.71f,.72f),false,TextAlignmentOptions.MidlineLeft);
+        ExactMapRect(name.rectTransform,new Vector2(.225f,.60f),new Vector2(.575f,.91f));
+        name.characterSpacing=.15f;name.enableAutoSizing=true;name.fontSizeMin=9f;name.fontSizeMax=15f;name.overflowMode=TextOverflowModes.Truncate;name.raycastTarget=false;
+
+        string recommended="RECOMMENDED LV. "+Mathf.Max(1,loc.recommendedLevel).ToString("00");
+        var level=PcCampText(rt,"RecommendedLevel",recommended,0,0,1,1,11,unlocked?new Color(1f,.73f,.37f):new Color(.55f,.60f,.61f),false,TextAlignmentOptions.MidlineLeft);
+        ExactMapRect(level.rectTransform,new Vector2(.23f,.36f),new Vector2(.575f,.57f));
+        level.characterSpacing=.35f;level.raycastTarget=false;
+
+        var progress=PcCampText(rt,"LocationProgress",completed>=4?"ALL LEVELS CLEARED":"PROGRESS  "+completed+" / 4",0,0,1,1,10,
+            completed>0?new Color(.65f,.88f,.67f):new Color(.62f,.70f,.73f),false,TextAlignmentOptions.MidlineLeft);
+        ExactMapRect(progress.rectTransform,new Vector2(.23f,.10f),new Vector2(.575f,.29f));progress.raycastTarget=false;
+
         for(int i=0;i<4;i++)
         {
-            var starGo=new GameObject("Star_"+i,typeof(RectTransform),typeof(CanvasRenderer),typeof(Image));var sr=(RectTransform)starGo.transform;sr.SetParent(rt,false);
-            float sx=.245f+i*.075f;ExactMapRect(sr,new Vector2(sx,.13f),new Vector2(sx+.060f,.40f));
+            var starGo=new GameObject("Star_"+i,typeof(RectTransform),typeof(CanvasRenderer),typeof(Image));
+            var sr=(RectTransform)starGo.transform;sr.SetParent(rt,false);
+            float sx=.235f+i*.070f;ExactMapRect(sr,new Vector2(sx,.29f),new Vector2(sx+.055f,.46f));
             var star=starGo.GetComponent<Image>();star.sprite=UIKit.Star;star.type=Image.Type.Simple;star.preserveAspect=true;star.raycastTarget=false;
             star.color=i<completed?UIKit.Col.Gold:new Color(.25f,.31f,.32f,1f);
         }
@@ -275,12 +343,18 @@ public partial class MainMenuController
             var lockImage=PcCampImage(rt,"Lock","lock",0,0,18,22,false);
             ExactMapRect(lockImage.rectTransform,new Vector2(.925f,.07f),new Vector2(.98f,.36f));lockImage.preserveAspect=true;
         }
+        else if(completed>=4)
+        {
+            var clear=PcCampArtImage(rt,"ClearMark","Art/Skills/ui_check",0,0,22,22);
+            ExactMapRect(clear.rectTransform,new Vector2(.925f,.67f),new Vector2(.98f,.93f));
+            clear.color=new Color(.65f,1f,.69f,1f);
+        }
         var outline=go.AddComponent<Outline>();outline.effectColor=unlocked?new Color(.66f,.73f,.74f,1f):new Color(.22f,.30f,.33f,1f);outline.effectDistance=new Vector2(1f,-1f);
         nodeOutlines[loc.id]=outline;nodeBorders[loc.id]=outline.effectColor;pcCampaignNodes[loc.id]=image;
 
         var pin=PcCampArtImage(rt,"SelectedPin","Art/Skills/ui_arrow_down",0,0,24,18);
         var pr=pin.rectTransform;pr.anchorMin=pr.anchorMax=new Vector2(.5f,0f);pr.pivot=new Vector2(.5f,1f);pr.anchoredPosition=new Vector2(0,-2);pr.sizeDelta=new Vector2(28,22);
-        pin.color=new Color(1f,.20f,.035f,1f);pin.gameObject.SetActive(false);
+        pin.color=new Color(1f,.30f,.08f,1f);pin.gameObject.SetActive(false);
         nodePins[loc.id]=pin.gameObject;pcCampaignPins[loc.id]=pin.gameObject;
     }
 

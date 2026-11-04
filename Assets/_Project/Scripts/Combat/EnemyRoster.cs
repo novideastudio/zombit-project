@@ -29,7 +29,7 @@ public static class EnemyRoster
         { "escola",    new[] { "Estudante", "Professor", "Limpeza", "Esportista" } },
         { "delegacia", new[] { "Policial", "Detento", "Agente SWAT", "Cão Infectado" } },
         { "hospital",  new[] { "Paciente", "Enfermeira", "Médico", "Camareiro" } },
-        { "base",      new[] { "Soldado", "Sniper", "Engenheiro", "Cão Militar" } },
+        { "base",      new[] { "Soldado", "Atirador de Elite", "Engenheiro", "Cão Militar" } },
         { "centro",    new[] { "Civil", "Motorista", "Trabalhador", "Motoqueiro" } },
     };
 

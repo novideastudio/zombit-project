@@ -105,7 +105,7 @@ public partial class ShootingRange
         pcRangeCashGold=PcRangeText(pcRangeStage,"Gold","",1268,26,110,62,32,Color.white);
         var scrap=PcRangeImage(pcRangeStage,"ScrapIcon","scrap",1404,34,44,44);scrap.preserveAspect=true;
         pcRangeCashScrap=PcRangeText(pcRangeStage,"Scrap","",1460,26,114,62,32,Color.white);
-        PcRangeButton(pcRangeStage,"Back","VOLTAR","red",1606,12,290,90,()=>{var flow=FindFirstObjectByType<MissionFlow>();if(flow)flow.ExitTrainingToMap();});
+        PcRangeButton(pcRangeStage,"Back","VOLTAR AO MENU","red",1606,12,290,90,()=>{var flow=FindFirstObjectByType<MissionFlow>();if(flow)flow.ExitTrainingToMap();});
         var left=PcRangeImage(pcRangeStage,"TargetPanel","red",24,120,472,310,true).rectTransform;
         var target=PcRangeImage(left,"TargetIcon","target",18,14,72,72);target.preserveAspect=true;
         PcRangeText(left,"Heading","ESTANDE DE TIRO",102,14,350,40,30,new Color(0.98f,0.91f,0.73f));
@@ -151,14 +151,7 @@ public partial class ShootingRange
     void HidePcLegacyRangeHud()
     {
         if(!GameSession.IsRange)return;var hud=FindFirstObjectByType<HudController>();if(!hud)return;
-        foreach(var name in new[]{"HudPlate_Wave","HudPlate_Backpack","HudPlate_Shock"}){var t=hud.transform.Find(name);if(t)t.gameObject.SetActive(false);}
-    }
-    void PcRangeShock()
-    {
-        foreach(var m in HeroSquad.Members)if(m!=null && m.stats && m.Alive)
-        {
-            var skills=m.stats.GetComponent<ActiveSkills>();if(skills && skills.TryShockWave())ZombitAudio.PlayUI();return;
-        }
+        foreach(var name in new[]{"HudPlate_Wave","HudPlate_Backpack","HudPlate_BackToMap"}){var t=hud.transform.Find(name);if(t)t.gameObject.SetActive(false);}
     }
     void RefreshPcRangeButtons()
     {

@@ -5,28 +5,103 @@ using UnityEngine.UI;
 // Layout overlay only; gameplay, callbacks and dynamic data remain in runtime code.
 public static class UILayoutPrefabApplier
 {
-    public const string ResourcesFolder = "UI/Screens/Layout_";
+    public const string ScreenResourcesPrefix = UIResourcePaths.ScreenPrefix;
     public static bool SuppressApply { get; set; }
+
+    public struct ApplyReport
+    {
+        public string screenKey;
+        public int matchedNodes;
+        public int nodesWithOverrides;
+        public int runtimeCreatedNodes;
+        public int unmatchedNodes;
+        public int skippedTemplateNodes;
+        public string Summary => "Screen_" + screenKey + ": " + matchedNodes + " elementos correspondidos, " +
+            nodesWithOverrides + " com overrides, " + runtimeCreatedNodes + " novos elementos, " +
+            unmatchedNodes + " sem correspondencia e " + skippedTemplateNodes + " itens dinamicos ignorados.";
+    }
+
+    static ApplyReport lastReport;
+    static ApplyReport workingReport;
+    public static ApplyReport LastReport => lastReport;
+    public static string GetLastApplyReport() => lastReport.Summary;
 
     public static bool HasLayout(string key)
     {
-        if (key == "map" || key == "mapSkills") return false;
         return !SuppressApply && !string.IsNullOrEmpty(key) && UITheme.Current.useEditorUI &&
-            Resources.Load<GameObject>(ResourcesFolder + key) != null;
+            Resources.Load<GameObject>(ScreenResourcesPrefix + key) != null;
+    }
+
+    /// <summary>
+    /// Recalcula os LayoutGroups/Fitters de uma tela após aplicar overrides visuais.
+    /// Pode ser chamado tanto no Editor quanto em Play Mode; não instancia serviços
+    /// de runtime e não altera a lógica dos controladores.
+    /// </summary>
+    public static void ReapplyFits(RectTransform root)
+    {
+        if (root == null) return;
+
+        Canvas.ForceUpdateCanvases();
+
+        // Rebuild de baixo para cima: primeiro os elementos internos, depois os pais.
+        var rects = root.GetComponentsInChildren<RectTransform>(true);
+        for (int i = rects.Length - 1; i >= 0; i--)
+        {
+            var rect = rects[i];
+            if (rect == null) continue;
+
+            var layoutGroup = rect.GetComponent<LayoutGroup>();
+            var contentFitter = rect.GetComponent<ContentSizeFitter>();
+            var aspectFitter = rect.GetComponent<AspectRatioFitter>();
+            if (layoutGroup != null || contentFitter != null || aspectFitter != null)
+                LayoutRebuilder.ForceRebuildLayoutImmediate(rect);
+        }
+
+        LayoutRebuilder.ForceRebuildLayoutImmediate(root);
+        Canvas.ForceUpdateCanvases();
+    }
+
+    // Sobrecargas para chamadas existentes que possuam uma referência mais genérica.
+    public static void ReapplyFits(Transform root)
+    {
+        ReapplyFits(root as RectTransform);
+    }
+
+    public static void ReapplyFits(GameObject root)
+    {
+        ReapplyFits(root != null ? root.transform as RectTransform : null);
+    }
+
+    // Compatibilidade quando o chamador possui uma referencia Component generica.
+    // Evita CS0117/CS1503 em controladores e ferramentas que nao armazenam RectTransform.
+    public static void ReapplyFits(Component root)
+    {
+        ReapplyFits(root != null ? root.transform as RectTransform : null);
+    }
+
+    public static void ReapplyFits()
+    {
+        Canvas.ForceUpdateCanvases();
     }
 
     public static bool Apply(RectTransform runtimeScreen, string key)
     {
         if (SuppressApply || runtimeScreen == null || string.IsNullOrEmpty(key) || !UITheme.Current.useEditorUI)
             return false;
-        var prefab = Resources.Load<GameObject>(ResourcesFolder + key);
+        var prefab = Resources.Load<GameObject>(ScreenResourcesPrefix + key);
         if (prefab == null) return false;
-        if (key == "map" && EditorUiBinding.FindDeep(prefab.transform, "HubProfile") == null)
+        if (key == "map" && (EditorUiBinding.FindDeep(prefab.transform, "PcCampaignDetails") == null || EditorUiBinding.FindDeep(prefab.transform, "MapArea") == null))
         {
-            Debug.LogWarning("[ZomBit UI] Layout_map desatualizado; usando layout do codigo.");
+            Debug.LogWarning("[ZomBit UI] Screen_map desatualizado; usando layout do codigo.");
             return false;
         }
+        workingReport = new ApplyReport { screenKey = key };
         ApplyNode(prefab.transform, runtimeScreen, true, key);
+        // Garante que LayoutGroups/Fitters reflitam imediatamente as medidas aplicadas pelo prefab.
+        ReapplyFits(runtimeScreen);
+        lastReport = workingReport;
+        if (UITheme.Current.logLayoutApplyDiagnostics)
+            Debug.Log("[ZomBit UI] " + lastReport.Summary);
         return true;
     }
 
@@ -39,9 +114,15 @@ public static class UILayoutPrefabApplier
     {
         if (source == null || target == null) return;
         var flags = source.GetComponent<UIPrefabLayoutOverride>();
+        workingReport.matchedNodes++;
         if (flags != null)
         {
+            workingReport.nodesWithOverrides++;
             if (!isRoot) ApplyRectTransform(source as RectTransform, target as RectTransform, flags);
+            if (flags.overrideActiveState && target.gameObject.activeSelf != source.gameObject.activeSelf)
+                target.gameObject.SetActive(source.gameObject.activeSelf);
+            if (!isRoot && flags.overrideSiblingOrder && target.parent != null)
+                target.SetSiblingIndex(Mathf.Clamp(source.GetSiblingIndex(), 0, Mathf.Max(0, target.parent.childCount - 1)));
             ApplyImage(source.GetComponent<Image>(), target.GetComponent<Image>(), flags);
             ApplyText(source.GetComponent<TMP_Text>(), target.GetComponent<TMP_Text>(), flags);
             ApplyButton(source.GetComponent<Button>(), target.GetComponent<Button>(), flags);
@@ -50,12 +131,29 @@ public static class UILayoutPrefabApplier
         for (int i = 0; i < source.childCount; i++)
         {
             var child = source.GetChild(i);
-            if (OwnedByTemplate(key, child.name)) continue;
+            if (OwnedByTemplate(key, child.name)) { workingReport.skippedTemplateNodes++; continue; }
             int occurrence = 0;
             for (int j = 0; j < i; j++)
                 if (source.GetChild(j).name == child.name) occurrence++;
             var match = FindChildOccurrence(target, child.name, occurrence);
-            if (match != null) ApplyNode(child, match, false, key);
+            if (match != null)
+            {
+                ApplyNode(child, match, false, key);
+            }
+            else
+            {
+                // Elementos criados no Editor Visual podem ser adicionados a layouts dinamicos.
+                // Quando marcados explicitamente, eles passam a existir no runtime mesmo sem
+                // um objeto equivalente gerado pelo codigo. O clone preserva filhos, imagens e TMP.
+                var createFlag = child.GetComponent<UIPrefabLayoutOverride>();
+                if (createFlag != null && createFlag.runtimeCreateIfMissing)
+                {
+                    var created = Object.Instantiate(child.gameObject, target, false);
+                    created.name = child.name;
+                    workingReport.runtimeCreatedNodes++;
+                }
+                else workingReport.unmatchedNodes++;
+            }
         }
     }
 

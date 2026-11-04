@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UITheme
   useEditorUI: 1
   polishPrefabButtons: 0
+  logLayoutApplyDiagnostics: 0
   font: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   displayFont: {fileID: 0}
   minFontSize: 14

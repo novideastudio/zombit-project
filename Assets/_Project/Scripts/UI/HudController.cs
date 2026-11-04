@@ -10,7 +10,6 @@ using UnityEngine.UI;
 ///  - Canto superior DIREITO: retorno ao mapa (confirmado) e icone da MOCHILA (clicavel, atalho [I]).
 ///  - EMBAIXO, a esquerda: um cartao compacto por sobrevivente do esquadrao (1 a 3), lado a lado,
 ///    cada um com vida, XP, arma/municao/recarga e a PROPRIA habilidade.
-///  - EMBAIXO, no centro: botao da Onda de choque / Empurrar zumbi [ESPACO] (clicavel) + dica do foco por clique.
 /// Os widgets antigos da cena (vida/XP/municao do principal) ficam ocultos; wave/zumbis/ouro/abates
 /// sao reaproveitados dentro das novas placas. Tudo e criado em runtime: nao exige mexer na cena.
 /// </summary>
@@ -47,7 +46,6 @@ public class HudController : MonoBehaviour
     // ---- medidas (resolucao de referencia 1920x1080) ----
     const float Margin = 16f;
     const float CardW = 420f, CardH = 136f, CardGap = 12f;
-    const float ShockW = 240f;
     const float RefWidth = 1920f;      // largura de referencia do CanvasScaler
     const float BackpackSize = 92f;
     const float BackButtonWidth = 82f;
@@ -79,11 +77,9 @@ public class HudController : MonoBehaviour
     int builtSquadCount = -1;
 
     // ---- placas / atalhos ----
-    RectTransform wavePlate, accountPlate, shockPlate;
-    TMP_Text shockStatus;
-    Image shockFill;
+    RectTransform wavePlate, accountPlate;
     TMP_Text lowHpWarning;
-    int lastEnemies = -1, lastGold = -1, lastKills = -1, lastShockKey = int.MinValue;
+    int lastEnemies = -1, lastGold = -1, lastKills = -1;
     int waveCur, waveTotal, lastWaveTimer = -2;
     bool built;
 
@@ -136,10 +132,13 @@ public class HudController : MonoBehaviour
         }
 
         int squadCount = Mathf.Max(1, HeroSquad.Count);
-        if (squadCount != builtSquadCount) BuildSquadCards();
+        if (squadCount != builtSquadCount)
+        {
+            BuildSquadCards();
+            ApplyEditableHudLayout();
+        }
         foreach (var c in cards) UpdateCard(c);
 
-        UpdateShockButton();
         RefreshLowHealthWarning();
         HandleHotkeys();
     }
@@ -226,14 +225,19 @@ public class HudController : MonoBehaviour
         BuildWavePlate();
         BuildAccountPlate();
         BuildBackButton();
-        if (ActiveSkills.ShockWaveEnabled) BuildShockPlate();
-        if (GameSession.IsRange && shockPlate != null) { shockPlate.anchorMin = shockPlate.anchorMax = new Vector2(1f, 0f); shockPlate.pivot = new Vector2(1f, 0f); shockPlate.anchoredPosition = new Vector2(-16f, 230f); }
         BuildSquadCards();
         BuildLowHpWarning();
         // A mochila (InventoryPanel) e os banners da cena continuam POR CIMA das placas novas.
         if (levelUpBanner) levelUpBanner.transform.SetAsLastSibling();
         var toggle = PanelToggle.Instance;
         if (toggle && toggle.panel && toggle.panel.transform.parent == transform) toggle.panel.transform.SetAsLastSibling();
+        ApplyEditableHudLayout();
+    }
+
+    void ApplyEditableHudLayout()
+    {
+        var root = transform as RectTransform;
+        if (root != null) UILayoutPrefabApplier.Apply(root, "combatHud");
     }
 
     /// <summary>Esconde vida/XP/municao antigos do principal (agora estao no cartao dele).</summary>
@@ -299,32 +303,50 @@ public class HudController : MonoBehaviour
         sep.raycastTarget = false;
         Put(sep.rectTransform, wavePlate, 20f, 62f, w - 40f, 2f);
 
-        // Linha 3: FASE/WAVE x/y + tempo.
-        if (waveText)
+        if (GameSession.IsRefugeDefense)
         {
-            StyleText(waveText, 30f, new Color(1f, 0.88f, 0.62f, 1f), true);
-            waveText.alignment = TextAlignmentOptions.MidlineLeft;
-            waveText.enableAutoSizing = true; waveText.fontSizeMin = 18f; waveText.fontSizeMax = 30f;
-            Put(waveText.rectTransform, wavePlate, 20f, 66f, w - 40f, 40f);
-            waveText.gameObject.SetActive(true);
+            // A onda e os abates ja aparecem no painel central do modo Defesa.
+            // No quadro esquerdo ficam apenas local, dificuldade e zumbis vivos.
+            if (waveText) waveText.gameObject.SetActive(false);
+            if (killsText) killsText.gameObject.SetActive(false);
+            Label(wavePlate, "ZUMBIS VIVOS", 14f, HudDim, "HudEnemiesLabel", 20f, 82f, 150f, 28f);
+            if (enemiesText)
+            {
+                StyleText(enemiesText, 22f, new Color(0.86f, 0.90f, 0.92f, 1f), true);
+                enemiesText.alignment = TextAlignmentOptions.MidlineLeft;
+                Put(enemiesText.rectTransform, wavePlate, 174f, 80f, 100f, 32f);
+                enemiesText.gameObject.SetActive(true);
+            }
         }
+        else
+        {
+            // Linha 3: FASE/WAVE x/y + tempo.
+            if (waveText)
+            {
+                StyleText(waveText, 30f, new Color(1f, 0.88f, 0.62f, 1f), true);
+                waveText.alignment = TextAlignmentOptions.MidlineLeft;
+                waveText.enableAutoSizing = true; waveText.fontSizeMin = 18f; waveText.fontSizeMax = 30f;
+                Put(waveText.rectTransform, wavePlate, 20f, 66f, w - 40f, 40f);
+                waveText.gameObject.SetActive(true);
+            }
 
-        // Linha 4: abates (+ zumbis vivos, menor).
-        Label(wavePlate, "ABATES", 14f, HudDim, "HudKillsLabel", 20f, 112f, 72f, 28f);
-        if (killsText)
-        {
-            StyleText(killsText, 23f, Color.white, true);
-            killsText.alignment = TextAlignmentOptions.MidlineLeft;
-            Put(killsText.rectTransform, wavePlate, 94f, 111f, 80f, 30f);
-            killsText.gameObject.SetActive(true);
-        }
-        Label(wavePlate, "ZUMBIS", 12f, HudDim, "HudEnemiesLabel", 200f, 114f, 66f, 24f);
-        if (enemiesText)
-        {
-            StyleText(enemiesText, 19f, new Color(0.86f, 0.90f, 0.92f, 1f), true);
-            enemiesText.alignment = TextAlignmentOptions.MidlineLeft;
-            Put(enemiesText.rectTransform, wavePlate, 266f, 112f, 90f, 28f);
-            enemiesText.gameObject.SetActive(true);
+            // Linha 4: abates (+ zumbis vivos, menor).
+            Label(wavePlate, "ABATES", 14f, HudDim, "HudKillsLabel", 20f, 112f, 72f, 28f);
+            if (killsText)
+            {
+                StyleText(killsText, 23f, Color.white, true);
+                killsText.alignment = TextAlignmentOptions.MidlineLeft;
+                Put(killsText.rectTransform, wavePlate, 94f, 111f, 80f, 30f);
+                killsText.gameObject.SetActive(true);
+            }
+            Label(wavePlate, "ZUMBIS", 12f, HudDim, "HudEnemiesLabel", 200f, 114f, 66f, 24f);
+            if (enemiesText)
+            {
+                StyleText(enemiesText, 19f, new Color(0.86f, 0.90f, 0.92f, 1f), true);
+                enemiesText.alignment = TextAlignmentOptions.MidlineLeft;
+                Put(enemiesText.rectTransform, wavePlate, 266f, 112f, 90f, 28f);
+                enemiesText.gameObject.SetActive(true);
+            }
         }
     }
 
@@ -410,30 +432,6 @@ public class HudController : MonoBehaviour
         hit.transform.SetAsLastSibling();
     }
 
-    void BuildShockPlate()
-    {
-        shockPlate = MakePlate("HudPlate_Shock", new Vector2(0.5f, 0f), new Vector2(0f, Margin), new Vector2(ShockW, CardH), UIKit.Col.Cyan);
-        // A placa inteira e um botao: clicar dispara a onda de choque (igual a ESPACO).
-        var hit = UIFactory.Img(shockPlate, new Color(1f, 1f, 1f, 0f), "HudShockHit");
-        UIFactory.Stretch(hit.rectTransform);
-        hit.raycastTarget = true;
-        var btn = hit.gameObject.AddComponent<Button>();
-        btn.transition = Selectable.Transition.None;
-        btn.onClick.AddListener(TriggerShock);
-
-        var key = UIKit.Frame(shockPlate, "HudShockKey", new Color(0.05f, 0.10f, 0.12f, 1f), UIKit.Col.Cyan, 1.5f);
-        Put(key, shockPlate, 16f, 12f, 82f, 22f);
-        var kt = UIFactory.Txt(key, "TOQUE", 11f, TextAlignmentOptions.Center, UIKit.Col.Cyan, "Label");
-        kt.fontStyle = FontStyles.Bold; kt.raycastTarget = false;
-        UIFactory.Stretch(kt.rectTransform);
-        Label(shockPlate, "EMPURRAR ZUMBI", 15f, Color.white, "HudShockTitle", 16f, 42f, ShockW - 32f, 22f);
-        shockStatus = Label(shockPlate, "PRONTA", 13f, ReadyColor, "HudShockStatus", 16f, 66f, ShockW - 32f, 20f);
-        shockFill = UIKit.Bar(shockPlate, ReadyColor, 1f, "HudShockBar");
-        Put((RectTransform)shockFill.transform.parent, shockPlate, 16f, 90f, ShockW - 32f, 5f);
-        Label(shockPlate, "CLIQUE NO ZUMBI: FOCAR", 10f, HudDim, "HudFocusHint", 16f, 102f, ShockW - 32f, 16f);
-        hit.transform.SetAsLastSibling();
-    }
-
     void BuildLowHpWarning()
     {
         lowHpWarning = UIFactory.Txt(transform, "VIDA BAIXA", 22f, TextAlignmentOptions.Center, new Color(1f, 0.22f, 0.18f, 1f), "HudLowHealthWarning");
@@ -456,7 +454,7 @@ public class HudController : MonoBehaviour
         if (members.Count == 0) return;
 
         int n = members.Count;
-        // Zona dos cartoes: da margem esquerda ate antes do botao central (Empurrar).
+        // Zona dos cartoes: da margem esquerda ate antes da coluna de melhorias da defesa.
         float zoneRight = RefWidth - 380f;
         float avail = zoneRight - Margin;
         float cardW = Mathf.Min(CardW, (avail - (n - 1) * CardGap) / n);
@@ -628,37 +626,6 @@ public class HudController : MonoBehaviour
         c.abilityFill.color = col;
     }
 
-    // ---------- onda de choque ----------
-    ActiveSkills CurrentActive()
-    {
-        foreach (var m in HeroSquad.Members)
-            if (m.stats && m.Alive) { var a = m.stats.GetComponent<ActiveSkills>(); if (a) return a; }
-        return hero ? hero.GetComponent<ActiveSkills>() : null;
-    }
-
-    void TriggerShock()
-    {
-        var a = CurrentActive();
-        if (a != null && a.TryShockWave()) ZombitAudio.PlayUI();
-    }
-
-    void UpdateShockButton()
-    {
-        if (!shockStatus || !shockFill) return;
-        var a = CurrentActive();
-        int remain = a != null ? Mathf.CeilToInt(a.ShockCooldownRemaining) : -1;
-        if (remain != lastShockKey)
-        {
-            lastShockKey = remain;
-            if (remain < 0) { shockStatus.text = "INDISPONÍVEL"; shockStatus.color = HudDim; }
-            else if (remain == 0) { shockStatus.text = "PRONTA  ·  TOQUE / ESPAÇO"; shockStatus.color = ReadyColor; }
-            else { shockStatus.text = $"RECARGA {remain}s"; shockStatus.color = CooldownColor; }
-        }
-        float ratio = a != null ? a.ShockReadyRatio : 0f;
-        shockFill.fillAmount = ratio;
-        shockFill.color = ratio >= 1f ? ReadyColor : CooldownColor;
-    }
-
     // ---------- atalhos ----------
     void HandleHotkeys()
     {
@@ -708,16 +675,27 @@ public class HudController : MonoBehaviour
 
     void OnWave(int cur, int total)
     {
-        waveCur = cur; waveTotal = total; lastWaveTimer = -2;
+        waveCur = cur; waveTotal = total; lastWaveTimer = int.MinValue;
         UpdateWaveLabel();
     }
 
     // Mostra a contagem para a proxima onda (pressao de tempo) sem realocar string a cada frame.
     void UpdateWaveLabel()
     {
-        if (!waveText || waveTotal <= 0) return;
+        if (!waveText || GameSession.IsRefugeDefense) return;
         if (GameEvents.HordeMode)
         {
+            // Horda infinita: total <= 0 identifica o Last Stand e troca a placa para estagio.
+            if (waveTotal <= 0)
+            {
+                int endlessKey = waveCur * 2 + (GameEvents.HordeFury ? 1 : 0);
+                if (endlessKey == lastWaveTimer) return;
+                lastWaveTimer = endlessKey;
+                string furyTag = GameEvents.HordeFury ? "  <color=#FF5050>FÚRIA</color>" : "";
+                waveText.text = $"LAST STAND  ·  STAGE {waveCur:00}{furyTag}";
+                return;
+            }
+
             // Horda continua: "FASE 2/5  1:32" (tempo restante); FURIA em vermelho quando comeca.
             float hl = GameEvents.HordeTimeLeft;
             int secs = hl < 0f ? -1 : Mathf.CeilToInt(hl);
@@ -729,6 +707,7 @@ public class HudController : MonoBehaviour
             waveText.text = $"FASE {waveCur}/{waveTotal}  <size=60%><color=#9AA6B2>{clock}</color>{fury}</size>";
             return;
         }
+        if (waveTotal <= 0) return;
         float left = GameEvents.WaveTimeLeft;
         int t = left < 0f ? -1 : Mathf.CeilToInt(left);
         if (t == lastWaveTimer) return;

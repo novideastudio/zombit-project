@@ -12,7 +12,7 @@ public sealed class PixelCombatVFX : MonoBehaviour
         public float age, life, spin;
         public Vector3 baseScale;
         public bool bloodPool;
-        // Particulas "custom" (explosao/onda de choque): gradiente de 3 cores, gravidade, arrasto e crescimento.
+        // Particulas "custom" (explosoes e impactos): gradiente de 3 cores, gravidade, arrasto e crescimento.
         public bool custom, align;
         public Color c0, c1, c2;
         public float grow = 1f, gravity, drag = 3.2f, alphaPow = 1f, startAlpha = 1f, flat = 1f;
@@ -422,34 +422,6 @@ public sealed class PixelCombatVFX : MonoBehaviour
 
         // 9) marca de queimado
         if (!light) CreateScorch(new Vector3(pos.x, pos.y - 0.05f, pos.z), r * 1.15f);
-    }
-
-    /// <summary>
-    /// Onda de choque do "Empurrar zumbi": sem fogo. Anel de pressao azul-esbranquicado, poeira varrida para os dois lados
-    /// e um clarao curto. Tambem toca o som e treme a camera de leve.
-    /// </summary>
-    public static void Shockwave(Vector3 pos, float radius)
-    {
-        var self = Instance;
-        ZombitAudio.PlayShockwave(pos);
-        HeroDamageFeedback.Shake(0.28f);
-        float r = Mathf.Max(1.5f, radius);
-        var blob = BlobSprite(); var glow = GlowSprite(); var ring = RingSprite();
-        Vector3 g = new Vector3(pos.x, pos.y + 0.05f, pos.z);
-
-        self.Burst(glow, g + Vector3.up * 0.5f, new Color(0.9f, 0.98f, 1f, 0.9f), new Color(0.5f, 0.85f, 1f, 0.5f), new Color(0.2f, 0.5f, 0.8f, 0f),
-            Vector3.one * 2.6f, 1.4f, 0.22f, Vector3.zero, 21600, 0f, 0f, 1.3f);
-        self.Burst(ring, g, new Color(0.9f, 0.98f, 1f, 0.95f), new Color(0.45f, 0.82f, 1f, 0.7f), new Color(0.2f, 0.45f, 0.75f, 0f),
-            Vector3.one * 0.8f, r * 2.1f / 0.8f, 0.42f, Vector3.zero, 21510, 0f, 0f, 1.2f, 0.34f);
-        self.Burst(ring, g, new Color(1f, 1f, 1f, 0.6f), new Color(0.7f, 0.9f, 1f, 0.35f), new Color(0.3f, 0.5f, 0.8f, 0f),
-            Vector3.one * 0.6f, r * 1.5f / 0.6f, 0.3f, Vector3.zero, 21511, 0f, 0f, 1.0f, 0.30f);
-        for (int i = 0; i < 16; i++)
-        {
-            float dir = i % 2 == 0 ? 1f : -1f;
-            Vector3 v = new Vector3(dir * Random.Range(4f, 10f), Random.Range(0.1f, 0.6f), 0f);
-            self.Burst(blob, g + new Vector3(Random.Range(-0.3f, 0.3f), 0.1f, 0f), new Color(0.78f, 0.7f, 0.58f), new Color(0.6f, 0.54f, 0.45f), new Color(0.4f, 0.36f, 0.3f),
-                Vector3.one * Random.Range(0.28f, 0.5f), 2.2f, Random.Range(0.45f, 0.8f), v, 21470, 3.4f, 0f, 1.0f, 0.6f, Random.Range(-30f, 30f), false, 0.7f);
-        }
     }
 
     /// <summary>Carga do cuspidor: globo acido na boca, para o windup ser legivel.</summary>

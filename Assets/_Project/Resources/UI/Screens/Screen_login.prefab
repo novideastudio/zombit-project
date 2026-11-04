@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 7698621215905754665}
   - component: {fileID: 6699955303859968327}
   - component: {fileID: 352180303515643085}
+  - component: {fileID: 6973672951739326692}
   m_Layer: 0
   m_Name: CinematicShade
   m_TagString: Untagged
@@ -75,6 +76,46 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &6973672951739326692
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 847988457894469673}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a4ebbb606b748c6ab92a1c3fd3f2d8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIPrefabLayoutOverride
+  overrideAnchorsAndPosition: 1
+  overrideSize: 1
+  overridePivot: 1
+  overrideScaleAndRotation: 1
+  overrideTextContent: 0
+  overrideTextStyle: 1
+  overrideTextColor: 0
+  bakedTextContent: 
+  bakedTextColor: {r: 1, g: 1, b: 1, a: 1}
+  overrideImageSprite: 1
+  overrideImageColor: 1
+  bakedImageSprite: {fileID: 21300000, guid: 662dc82c30be3ac4eba9279baf46b179, type: 3}
+  bakedImageColor: {r: 0.006, g: 0.012, b: 0.018, a: 0.78}
+  overrideButtonColors: 0
+  bakedButtonColors:
+    m_NormalColor: {r: 0, g: 0, b: 0, a: 0}
+    m_HighlightedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_PressedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_SelectedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_DisabledColor: {r: 0, g: 0, b: 0, a: 0}
+    m_ColorMultiplier: 0
+    m_FadeDuration: 0
+  overrideButtonTransition: 0
+  runtimeCreateIfMissing: 0
+  editorLocked: 0
+  overrideActiveState: 0
+  overrideSiblingOrder: 0
+  overrideLayoutComponents: 1
 --- !u!1 &1093381473427496488
 GameObject:
   m_ObjectHideFlags: 0
@@ -86,6 +127,7 @@ GameObject:
   - component: {fileID: 6536338311748847766}
   - component: {fileID: 3428595514712344688}
   - component: {fileID: 8342699232965774230}
+  - component: {fileID: 155160563505260743}
   m_Layer: 0
   m_Name: Border
   m_TagString: Untagged
@@ -150,6 +192,46 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &155160563505260743
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1093381473427496488}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a4ebbb606b748c6ab92a1c3fd3f2d8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIPrefabLayoutOverride
+  overrideAnchorsAndPosition: 1
+  overrideSize: 1
+  overridePivot: 1
+  overrideScaleAndRotation: 1
+  overrideTextContent: 0
+  overrideTextStyle: 1
+  overrideTextColor: 0
+  bakedTextContent: 
+  bakedTextColor: {r: 1, g: 1, b: 1, a: 1}
+  overrideImageSprite: 1
+  overrideImageColor: 1
+  bakedImageSprite: {fileID: 21300000, guid: cabc58db4243ef84ea064b222b62a973, type: 3}
+  bakedImageColor: {r: 0.36, g: 0.42, b: 0.49, a: 0.9}
+  overrideButtonColors: 0
+  bakedButtonColors:
+    m_NormalColor: {r: 0, g: 0, b: 0, a: 0}
+    m_HighlightedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_PressedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_SelectedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_DisabledColor: {r: 0, g: 0, b: 0, a: 0}
+    m_ColorMultiplier: 0
+    m_FadeDuration: 0
+  overrideButtonTransition: 0
+  runtimeCreateIfMissing: 0
+  editorLocked: 0
+  overrideActiveState: 0
+  overrideSiblingOrder: 0
+  overrideLayoutComponents: 1
 --- !u!1 &1711309370582063143
 GameObject:
   m_ObjectHideFlags: 0
@@ -161,6 +243,7 @@ GameObject:
   - component: {fileID: 6319733456859285343}
   - component: {fileID: 1314940367307374412}
   - component: {fileID: 6975967406637169436}
+  - component: {fileID: 7627223716608289330}
   m_Layer: 0
   m_Name: CinematicBackground
   m_TagString: Untagged
@@ -225,6 +308,46 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &7627223716608289330
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1711309370582063143}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a4ebbb606b748c6ab92a1c3fd3f2d8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIPrefabLayoutOverride
+  overrideAnchorsAndPosition: 1
+  overrideSize: 1
+  overridePivot: 1
+  overrideScaleAndRotation: 1
+  overrideTextContent: 0
+  overrideTextStyle: 1
+  overrideTextColor: 0
+  bakedTextContent: 
+  bakedTextColor: {r: 1, g: 1, b: 1, a: 1}
+  overrideImageSprite: 1
+  overrideImageColor: 1
+  bakedImageSprite: {fileID: 21300000, guid: 07e71f8ca871605408a76e86a41f3b27, type: 3}
+  bakedImageColor: {r: 0.84, g: 0.88, b: 0.92, a: 1}
+  overrideButtonColors: 0
+  bakedButtonColors:
+    m_NormalColor: {r: 0, g: 0, b: 0, a: 0}
+    m_HighlightedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_PressedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_SelectedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_DisabledColor: {r: 0, g: 0, b: 0, a: 0}
+    m_ColorMultiplier: 0
+    m_FadeDuration: 0
+  overrideButtonTransition: 0
+  runtimeCreateIfMissing: 0
+  editorLocked: 0
+  overrideActiveState: 0
+  overrideSiblingOrder: 0
+  overrideLayoutComponents: 1
 --- !u!1 &2750385663613268556
 GameObject:
   m_ObjectHideFlags: 0
@@ -236,6 +359,7 @@ GameObject:
   - component: {fileID: 6524300685193393830}
   - component: {fileID: 1167695480180019202}
   - component: {fileID: 3509740740000834861}
+  - component: {fileID: 6264812649002145769}
   m_Layer: 0
   m_Name: LoginLogo
   m_TagString: Untagged
@@ -362,6 +486,46 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &6264812649002145769
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2750385663613268556}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a4ebbb606b748c6ab92a1c3fd3f2d8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIPrefabLayoutOverride
+  overrideAnchorsAndPosition: 1
+  overrideSize: 1
+  overridePivot: 1
+  overrideScaleAndRotation: 1
+  overrideTextContent: 1
+  overrideTextStyle: 1
+  overrideTextColor: 1
+  bakedTextContent: <color=#F2F4F5>ZOMBIT</color> <color=#D8242B>SURVIVAL</color>
+  bakedTextColor: {r: 1, g: 1, b: 1, a: 1}
+  overrideImageSprite: 0
+  overrideImageColor: 0
+  bakedImageSprite: {fileID: 0}
+  bakedImageColor: {r: 1, g: 1, b: 1, a: 1}
+  overrideButtonColors: 0
+  bakedButtonColors:
+    m_NormalColor: {r: 0, g: 0, b: 0, a: 0}
+    m_HighlightedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_PressedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_SelectedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_DisabledColor: {r: 0, g: 0, b: 0, a: 0}
+    m_ColorMultiplier: 0
+    m_FadeDuration: 0
+  overrideButtonTransition: 0
+  runtimeCreateIfMissing: 0
+  editorLocked: 0
+  overrideActiveState: 0
+  overrideSiblingOrder: 0
+  overrideLayoutComponents: 1
 --- !u!1 &3328886899405957455
 GameObject:
   m_ObjectHideFlags: 0
@@ -374,13 +538,14 @@ GameObject:
   - component: {fileID: 6305199540180820856}
   - component: {fileID: 3436113697934609521}
   - component: {fileID: 2765235788825465883}
+  - component: {fileID: 3516556947213872456}
   m_Layer: 0
   m_Name: Screen_login
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &8899747370704578287
 RectTransform:
   m_ObjectHideFlags: 0
@@ -390,7 +555,7 @@ RectTransform:
   m_GameObject: {fileID: 3328886899405957455}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6319733456859285343}
@@ -402,10 +567,10 @@ RectTransform:
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &6305199540180820856
 Canvas:
   m_ObjectHideFlags: 0
@@ -446,7 +611,7 @@ MonoBehaviour:
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 1920, y: 1080}
-  m_ScreenMatchMode: 0
+  m_ScreenMatchMode: 1
   m_MatchWidthOrHeight: 0.5
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
@@ -470,6 +635,46 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!114 &3516556947213872456
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3328886899405957455}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a4ebbb606b748c6ab92a1c3fd3f2d8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIPrefabLayoutOverride
+  overrideAnchorsAndPosition: 0
+  overrideSize: 0
+  overridePivot: 0
+  overrideScaleAndRotation: 0
+  overrideTextContent: 0
+  overrideTextStyle: 1
+  overrideTextColor: 0
+  bakedTextContent: 
+  bakedTextColor: {r: 1, g: 1, b: 1, a: 1}
+  overrideImageSprite: 0
+  overrideImageColor: 0
+  bakedImageSprite: {fileID: 0}
+  bakedImageColor: {r: 1, g: 1, b: 1, a: 1}
+  overrideButtonColors: 0
+  bakedButtonColors:
+    m_NormalColor: {r: 0, g: 0, b: 0, a: 0}
+    m_HighlightedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_PressedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_SelectedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_DisabledColor: {r: 0, g: 0, b: 0, a: 0}
+    m_ColorMultiplier: 0
+    m_FadeDuration: 0
+  overrideButtonTransition: 0
+  runtimeCreateIfMissing: 0
+  editorLocked: 0
+  overrideActiveState: 0
+  overrideSiblingOrder: 0
+  overrideLayoutComponents: 1
 --- !u!1 &3565768334306523556
 GameObject:
   m_ObjectHideFlags: 0
@@ -483,6 +688,7 @@ GameObject:
   - component: {fileID: 87095105135769000}
   - component: {fileID: 7522678937633873227}
   - component: {fileID: 2738656388037406628}
+  - component: {fileID: 1513008856351879034}
   m_Layer: 0
   m_Name: LoginRetryButton
   m_TagString: Untagged
@@ -502,7 +708,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 2704344858531770602}
+  - {fileID: 63922013791245218}
   m_Father: {fileID: 4002378535244336067}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.25, y: 0.05}
@@ -604,6 +810,46 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a924f28c360879b4a9fd2775bc34a84e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonFx
+--- !u!114 &1513008856351879034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3565768334306523556}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a4ebbb606b748c6ab92a1c3fd3f2d8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIPrefabLayoutOverride
+  overrideAnchorsAndPosition: 1
+  overrideSize: 1
+  overridePivot: 1
+  overrideScaleAndRotation: 1
+  overrideTextContent: 0
+  overrideTextStyle: 1
+  overrideTextColor: 0
+  bakedTextContent: 
+  bakedTextColor: {r: 1, g: 1, b: 1, a: 1}
+  overrideImageSprite: 1
+  overrideImageColor: 1
+  bakedImageSprite: {fileID: 21300000, guid: cabc58db4243ef84ea064b222b62a973, type: 3}
+  bakedImageColor: {r: 1, g: 1, b: 1, a: 1}
+  overrideButtonColors: 1
+  bakedButtonColors:
+    m_NormalColor: {r: 0.149, g: 0.188, b: 0.235, a: 1}
+    m_HighlightedColor: {r: 0.3192, g: 0.3504, b: 0.388, a: 1}
+    m_PressedColor: {r: 0.1043, g: 0.13159999, b: 0.1645, a: 1}
+    m_SelectedColor: {r: 0.149, g: 0.188, b: 0.235, a: 1}
+    m_DisabledColor: {r: 0.14, g: 0.14, b: 0.14, a: 0.85}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.08
+  overrideButtonTransition: 1
+  runtimeCreateIfMissing: 0
+  editorLocked: 0
+  overrideActiveState: 0
+  overrideSiblingOrder: 0
+  overrideLayoutComponents: 1
 --- !u!1 &3589125399299179017
 GameObject:
   m_ObjectHideFlags: 0
@@ -615,6 +861,7 @@ GameObject:
   - component: {fileID: 1532455330207964357}
   - component: {fileID: 3431947189173762366}
   - component: {fileID: 4388788680161163873}
+  - component: {fileID: 1821067196444127191}
   m_Layer: 0
   m_Name: Fill
   m_TagString: Untagged
@@ -679,6 +926,46 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &1821067196444127191
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3589125399299179017}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a4ebbb606b748c6ab92a1c3fd3f2d8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIPrefabLayoutOverride
+  overrideAnchorsAndPosition: 1
+  overrideSize: 1
+  overridePivot: 1
+  overrideScaleAndRotation: 1
+  overrideTextContent: 0
+  overrideTextStyle: 1
+  overrideTextColor: 0
+  bakedTextContent: 
+  bakedTextColor: {r: 1, g: 1, b: 1, a: 1}
+  overrideImageSprite: 0
+  overrideImageColor: 1
+  bakedImageSprite: {fileID: 21300000, guid: cabc58db4243ef84ea064b222b62a973, type: 3}
+  bakedImageColor: {r: 0.018, g: 0.031, b: 0.043, a: 0.94}
+  overrideButtonColors: 0
+  bakedButtonColors:
+    m_NormalColor: {r: 0, g: 0, b: 0, a: 0}
+    m_HighlightedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_PressedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_SelectedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_DisabledColor: {r: 0, g: 0, b: 0, a: 0}
+    m_ColorMultiplier: 0
+    m_FadeDuration: 0
+  overrideButtonTransition: 0
+  runtimeCreateIfMissing: 0
+  editorLocked: 0
+  overrideActiveState: 0
+  overrideSiblingOrder: 0
+  overrideLayoutComponents: 1
 --- !u!1 &3832525012276500041
 GameObject:
   m_ObjectHideFlags: 0
@@ -692,6 +979,7 @@ GameObject:
   - component: {fileID: 698971587168866675}
   - component: {fileID: 3320646640098156827}
   - component: {fileID: 2265849947757551889}
+  - component: {fileID: 1691279441161011404}
   m_Layer: 0
   m_Name: LoginGoogleButton
   m_TagString: Untagged
@@ -813,6 +1101,46 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a924f28c360879b4a9fd2775bc34a84e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIButtonFx
+--- !u!114 &1691279441161011404
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3832525012276500041}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a4ebbb606b748c6ab92a1c3fd3f2d8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIPrefabLayoutOverride
+  overrideAnchorsAndPosition: 1
+  overrideSize: 1
+  overridePivot: 1
+  overrideScaleAndRotation: 1
+  overrideTextContent: 0
+  overrideTextStyle: 1
+  overrideTextColor: 0
+  bakedTextContent: 
+  bakedTextColor: {r: 1, g: 1, b: 1, a: 1}
+  overrideImageSprite: 1
+  overrideImageColor: 1
+  bakedImageSprite: {fileID: 21300000, guid: cabc58db4243ef84ea064b222b62a973, type: 3}
+  bakedImageColor: {r: 1, g: 1, b: 1, a: 1}
+  overrideButtonColors: 1
+  bakedButtonColors:
+    m_NormalColor: {r: 0.847, g: 0.141, b: 0.169, a: 1}
+    m_HighlightedColor: {r: 0.8776, g: 0.3128, b: 0.3352, a: 1}
+    m_PressedColor: {r: 0.5929, g: 0.0987, b: 0.1183, a: 1}
+    m_SelectedColor: {r: 0.847, g: 0.141, b: 0.169, a: 1}
+    m_DisabledColor: {r: 0.14, g: 0.14, b: 0.14, a: 0.85}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.08
+  overrideButtonTransition: 1
+  runtimeCreateIfMissing: 0
+  editorLocked: 0
+  overrideActiveState: 0
+  overrideSiblingOrder: 0
+  overrideLayoutComponents: 1
 --- !u!1 &4260795745519095397
 GameObject:
   m_ObjectHideFlags: 0
@@ -824,6 +1152,7 @@ GameObject:
   - component: {fileID: 8487001321116630733}
   - component: {fileID: 8783449310032115619}
   - component: {fileID: 1262675297316922261}
+  - component: {fileID: 6875437253395962532}
   m_Layer: 0
   m_Name: CinematicTopShade
   m_TagString: Untagged
@@ -888,6 +1217,46 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &6875437253395962532
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4260795745519095397}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a4ebbb606b748c6ab92a1c3fd3f2d8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIPrefabLayoutOverride
+  overrideAnchorsAndPosition: 1
+  overrideSize: 1
+  overridePivot: 1
+  overrideScaleAndRotation: 1
+  overrideTextContent: 0
+  overrideTextStyle: 1
+  overrideTextColor: 0
+  bakedTextContent: 
+  bakedTextColor: {r: 1, g: 1, b: 1, a: 1}
+  overrideImageSprite: 1
+  overrideImageColor: 1
+  bakedImageSprite: {fileID: 21300000, guid: 662dc82c30be3ac4eba9279baf46b179, type: 3}
+  bakedImageColor: {r: 0.005, g: 0.009, b: 0.014, a: 0.66}
+  overrideButtonColors: 0
+  bakedButtonColors:
+    m_NormalColor: {r: 0, g: 0, b: 0, a: 0}
+    m_HighlightedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_PressedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_SelectedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_DisabledColor: {r: 0, g: 0, b: 0, a: 0}
+    m_ColorMultiplier: 0
+    m_FadeDuration: 0
+  overrideButtonTransition: 0
+  runtimeCreateIfMissing: 0
+  editorLocked: 0
+  overrideActiveState: 0
+  overrideSiblingOrder: 0
+  overrideLayoutComponents: 1
 --- !u!1 &4509804125037455525
 GameObject:
   m_ObjectHideFlags: 0
@@ -897,6 +1266,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4002378535244336067}
+  - component: {fileID: 5454310250715231637}
   m_Layer: 0
   m_Name: LoginPanel
   m_TagString: Untagged
@@ -930,6 +1300,46 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: -40}
   m_SizeDelta: {x: 900, y: 540}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &5454310250715231637
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4509804125037455525}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a4ebbb606b748c6ab92a1c3fd3f2d8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIPrefabLayoutOverride
+  overrideAnchorsAndPosition: 1
+  overrideSize: 1
+  overridePivot: 1
+  overrideScaleAndRotation: 1
+  overrideTextContent: 0
+  overrideTextStyle: 1
+  overrideTextColor: 0
+  bakedTextContent: 
+  bakedTextColor: {r: 1, g: 1, b: 1, a: 1}
+  overrideImageSprite: 0
+  overrideImageColor: 0
+  bakedImageSprite: {fileID: 0}
+  bakedImageColor: {r: 1, g: 1, b: 1, a: 1}
+  overrideButtonColors: 0
+  bakedButtonColors:
+    m_NormalColor: {r: 0, g: 0, b: 0, a: 0}
+    m_HighlightedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_PressedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_SelectedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_DisabledColor: {r: 0, g: 0, b: 0, a: 0}
+    m_ColorMultiplier: 0
+    m_FadeDuration: 0
+  overrideButtonTransition: 0
+  runtimeCreateIfMissing: 0
+  editorLocked: 0
+  overrideActiveState: 0
+  overrideSiblingOrder: 0
+  overrideLayoutComponents: 1
 --- !u!1 &5082354669070809751
 GameObject:
   m_ObjectHideFlags: 0
@@ -941,6 +1351,7 @@ GameObject:
   - component: {fileID: 8085792846314488702}
   - component: {fileID: 6648126289841384830}
   - component: {fileID: 7138997895187438701}
+  - component: {fileID: 2955526465398511059}
   m_Layer: 0
   m_Name: Label
   m_TagString: Untagged
@@ -995,7 +1406,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: ENTRAR COM GOOGLE
+  m_text: ENTRAR (CONTA LOCAL DE TESTE)
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1067,143 +1478,46 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!1 &5237019843180360820
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2704344858531770602}
-  - component: {fileID: 4032640009926303335}
-  - component: {fileID: 4118986283903681564}
-  m_Layer: 0
-  m_Name: Label
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &2704344858531770602
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5237019843180360820}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1174420340004723843}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!222 &4032640009926303335
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5237019843180360820}
-  m_CullTransparentMesh: 1
---- !u!114 &4118986283903681564
+--- !u!114 &2955526465398511059
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5237019843180360820}
+  m_GameObject: {fileID: 5082354669070809751}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Script: {fileID: 11500000, guid: 7a4ebbb606b748c6ab92a1c3fd3f2d8a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
-  m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 0
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_text: TENTAR NOVAMENTE
-  m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_fontSharedMaterials: []
-  m_fontMaterial: {fileID: 0}
-  m_fontMaterials: []
-  m_fontColor32:
-    serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
-  m_enableVertexGradient: 0
-  m_colorMode: 3
-  m_fontColorGradient:
-    topLeft: {r: 1, g: 1, b: 1, a: 1}
-    topRight: {r: 1, g: 1, b: 1, a: 1}
-    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
-    bottomRight: {r: 1, g: 1, b: 1, a: 1}
-  m_fontColorGradientPreset: {fileID: 0}
-  m_spriteAsset: {fileID: 0}
-  m_tintAllSprites: 0
-  m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
-  m_overrideHtmlColors: 0
-  m_faceColor:
-    serializedVersion: 2
-    rgba: 4294967295
-  m_fontSize: 26
-  m_fontSizeBase: 26
-  m_fontWeight: 400
-  m_enableAutoSizing: 0
-  m_fontSizeMin: 0
-  m_fontSizeMax: 0
-  m_fontStyle: 0
-  m_HorizontalAlignment: 2
-  m_VerticalAlignment: 512
-  m_textAlignment: 65535
-  m_characterSpacing: 0
-  m_characterHorizontalScale: 1
-  m_wordSpacing: 0
-  m_lineSpacing: 0
-  m_lineSpacingMax: 0
-  m_paragraphSpacing: 0
-  m_charWidthMaxAdj: 0
-  m_TextWrappingMode: 0
-  m_wordWrappingRatios: 0.4
-  m_overflowMode: 0
-  m_linkedTextComponent: {fileID: 0}
-  parentLinkedComponent: {fileID: 0}
-  m_enableKerning: 0
-  m_ActiveFontFeatures: 00000000u
-  m_enableExtraPadding: 0
-  checkPaddingRequired: 0
-  m_isRichText: 1
-  m_EmojiFallbackSupport: 1
-  m_parseCtrlCharacters: 1
-  m_isOrthographic: 0
-  m_isCullingEnabled: 0
-  m_horizontalMapping: 0
-  m_verticalMapping: 0
-  m_uvLineOffset: 0
-  m_geometrySortingOrder: 0
-  m_IsTextObjectScaleStatic: 0
-  m_VertexBufferAutoSizeReduction: 0
-  m_useMaxVisibleDescender: 1
-  m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
-  m_isUsingLegacyAnimationComponent: 0
-  m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
-  m_baseMaterial: {fileID: 0}
-  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+  m_EditorClassIdentifier: Assembly-CSharp::UIPrefabLayoutOverride
+  overrideAnchorsAndPosition: 1
+  overrideSize: 1
+  overridePivot: 1
+  overrideScaleAndRotation: 1
+  overrideTextContent: 1
+  overrideTextStyle: 1
+  overrideTextColor: 1
+  bakedTextContent: ENTRAR (CONTA LOCAL DE TESTE)
+  bakedTextColor: {r: 1, g: 1, b: 1, a: 1}
+  overrideImageSprite: 0
+  overrideImageColor: 0
+  bakedImageSprite: {fileID: 0}
+  bakedImageColor: {r: 1, g: 1, b: 1, a: 1}
+  overrideButtonColors: 0
+  bakedButtonColors:
+    m_NormalColor: {r: 0, g: 0, b: 0, a: 0}
+    m_HighlightedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_PressedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_SelectedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_DisabledColor: {r: 0, g: 0, b: 0, a: 0}
+    m_ColorMultiplier: 0
+    m_FadeDuration: 0
+  overrideButtonTransition: 0
+  runtimeCreateIfMissing: 0
+  editorLocked: 0
+  overrideActiveState: 0
+  overrideSiblingOrder: 0
+  overrideLayoutComponents: 1
 --- !u!1 &5532824567846217693
 GameObject:
   m_ObjectHideFlags: 0
@@ -1215,6 +1529,7 @@ GameObject:
   - component: {fileID: 6939392975054499982}
   - component: {fileID: 8819158523854723245}
   - component: {fileID: 1518172686661337775}
+  - component: {fileID: 1678587900301000906}
   m_Layer: 0
   m_Name: LoginStatus
   m_TagString: Untagged
@@ -1341,6 +1656,46 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &1678587900301000906
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5532824567846217693}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a4ebbb606b748c6ab92a1c3fd3f2d8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIPrefabLayoutOverride
+  overrideAnchorsAndPosition: 1
+  overrideSize: 1
+  overridePivot: 1
+  overrideScaleAndRotation: 1
+  overrideTextContent: 1
+  overrideTextStyle: 1
+  overrideTextColor: 1
+  bakedTextContent: 
+  bakedTextColor: {r: 1, g: 0.7607843, b: 0.29411766, a: 1}
+  overrideImageSprite: 0
+  overrideImageColor: 0
+  bakedImageSprite: {fileID: 0}
+  bakedImageColor: {r: 1, g: 1, b: 1, a: 1}
+  overrideButtonColors: 0
+  bakedButtonColors:
+    m_NormalColor: {r: 0, g: 0, b: 0, a: 0}
+    m_HighlightedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_PressedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_SelectedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_DisabledColor: {r: 0, g: 0, b: 0, a: 0}
+    m_ColorMultiplier: 0
+    m_FadeDuration: 0
+  overrideButtonTransition: 0
+  runtimeCreateIfMissing: 0
+  editorLocked: 0
+  overrideActiveState: 0
+  overrideSiblingOrder: 0
+  overrideLayoutComponents: 1
 --- !u!1 &7110287272909357891
 GameObject:
   m_ObjectHideFlags: 0
@@ -1352,6 +1707,7 @@ GameObject:
   - component: {fileID: 7955242839503689124}
   - component: {fileID: 4195783567247970995}
   - component: {fileID: 4870780993489808163}
+  - component: {fileID: 5120474062798829314}
   m_Layer: 0
   m_Name: CinematicBottomShade
   m_TagString: Untagged
@@ -1416,6 +1772,224 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &5120474062798829314
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7110287272909357891}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a4ebbb606b748c6ab92a1c3fd3f2d8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIPrefabLayoutOverride
+  overrideAnchorsAndPosition: 1
+  overrideSize: 1
+  overridePivot: 1
+  overrideScaleAndRotation: 1
+  overrideTextContent: 0
+  overrideTextStyle: 1
+  overrideTextColor: 0
+  bakedTextContent: 
+  bakedTextColor: {r: 1, g: 1, b: 1, a: 1}
+  overrideImageSprite: 1
+  overrideImageColor: 1
+  bakedImageSprite: {fileID: 21300000, guid: 662dc82c30be3ac4eba9279baf46b179, type: 3}
+  bakedImageColor: {r: 0.005, g: 0.009, b: 0.014, a: 0.7}
+  overrideButtonColors: 0
+  bakedButtonColors:
+    m_NormalColor: {r: 0, g: 0, b: 0, a: 0}
+    m_HighlightedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_PressedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_SelectedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_DisabledColor: {r: 0, g: 0, b: 0, a: 0}
+    m_ColorMultiplier: 0
+    m_FadeDuration: 0
+  overrideButtonTransition: 0
+  runtimeCreateIfMissing: 0
+  editorLocked: 0
+  overrideActiveState: 0
+  overrideSiblingOrder: 0
+  overrideLayoutComponents: 1
+--- !u!1 &7516157737948854260
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 63922013791245218}
+  - component: {fileID: 218242559478979824}
+  - component: {fileID: 9897358266412541}
+  - component: {fileID: 8269227088428272333}
+  m_Layer: 0
+  m_Name: Label
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &63922013791245218
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7516157737948854260}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1174420340004723843}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &218242559478979824
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7516157737948854260}
+  m_CullTransparentMesh: 1
+--- !u!114 &9897358266412541
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7516157737948854260}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_text: TENTAR NOVAMENTE
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontSharedMaterials: []
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: 0
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 26
+  m_fontSizeBase: 26
+  m_fontWeight: 400
+  m_enableAutoSizing: 0
+  m_fontSizeMin: 0
+  m_fontSizeMax: 0
+  m_fontStyle: 0
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_characterHorizontalScale: 1
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_TextWrappingMode: 0
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 0
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 0
+  m_ActiveFontFeatures: 00000000u
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 1
+  m_EmojiFallbackSupport: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 0
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &8269227088428272333
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7516157737948854260}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a4ebbb606b748c6ab92a1c3fd3f2d8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIPrefabLayoutOverride
+  overrideAnchorsAndPosition: 1
+  overrideSize: 1
+  overridePivot: 1
+  overrideScaleAndRotation: 1
+  overrideTextContent: 1
+  overrideTextStyle: 1
+  overrideTextColor: 1
+  bakedTextContent: TENTAR NOVAMENTE
+  bakedTextColor: {r: 1, g: 1, b: 1, a: 1}
+  overrideImageSprite: 0
+  overrideImageColor: 0
+  bakedImageSprite: {fileID: 0}
+  bakedImageColor: {r: 1, g: 1, b: 1, a: 1}
+  overrideButtonColors: 0
+  bakedButtonColors:
+    m_NormalColor: {r: 0, g: 0, b: 0, a: 0}
+    m_HighlightedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_PressedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_SelectedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_DisabledColor: {r: 0, g: 0, b: 0, a: 0}
+    m_ColorMultiplier: 0
+    m_FadeDuration: 0
+  overrideButtonTransition: 0
+  runtimeCreateIfMissing: 0
+  editorLocked: 0
+  overrideActiveState: 0
+  overrideSiblingOrder: 0
+  overrideLayoutComponents: 1
 --- !u!1 &7603885078922324726
 GameObject:
   m_ObjectHideFlags: 0
@@ -1427,6 +2001,7 @@ GameObject:
   - component: {fileID: 5654991497003530898}
   - component: {fileID: 4650796821794711724}
   - component: {fileID: 2301590308598507062}
+  - component: {fileID: 5141562052504489998}
   m_Layer: 0
   m_Name: LoginTitle
   m_TagString: Untagged
@@ -1553,6 +2128,46 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &5141562052504489998
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7603885078922324726}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a4ebbb606b748c6ab92a1c3fd3f2d8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIPrefabLayoutOverride
+  overrideAnchorsAndPosition: 1
+  overrideSize: 1
+  overridePivot: 1
+  overrideScaleAndRotation: 1
+  overrideTextContent: 1
+  overrideTextStyle: 1
+  overrideTextColor: 1
+  bakedTextContent: CONTA ZOMBIT
+  bakedTextColor: {r: 1, g: 0.7607843, b: 0.29411766, a: 1}
+  overrideImageSprite: 0
+  overrideImageColor: 0
+  bakedImageSprite: {fileID: 0}
+  bakedImageColor: {r: 1, g: 1, b: 1, a: 1}
+  overrideButtonColors: 0
+  bakedButtonColors:
+    m_NormalColor: {r: 0, g: 0, b: 0, a: 0}
+    m_HighlightedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_PressedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_SelectedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_DisabledColor: {r: 0, g: 0, b: 0, a: 0}
+    m_ColorMultiplier: 0
+    m_FadeDuration: 0
+  overrideButtonTransition: 0
+  runtimeCreateIfMissing: 0
+  editorLocked: 0
+  overrideActiveState: 0
+  overrideSiblingOrder: 0
+  overrideLayoutComponents: 1
 --- !u!1 &7925086382162888328
 GameObject:
   m_ObjectHideFlags: 0
@@ -1564,6 +2179,7 @@ GameObject:
   - component: {fileID: 5139583815128283573}
   - component: {fileID: 8924748994966238361}
   - component: {fileID: 3364954636723134683}
+  - component: {fileID: 2778161035268244527}
   m_Layer: 0
   m_Name: LoginSub
   m_TagString: Untagged
@@ -1690,3 +2306,43 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &2778161035268244527
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7925086382162888328}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a4ebbb606b748c6ab92a1c3fd3f2d8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UIPrefabLayoutOverride
+  overrideAnchorsAndPosition: 1
+  overrideSize: 1
+  overridePivot: 1
+  overrideScaleAndRotation: 1
+  overrideTextContent: 1
+  overrideTextStyle: 1
+  overrideTextColor: 1
+  bakedTextContent: "Entre com sua conta Google para salvar a campanha online e continuar de qualquer aparelho.\nNa primeira vez voc\xEA escolhe o seu nick."
+  bakedTextColor: {r: 0.6039216, g: 0.6509804, b: 0.69803923, a: 1}
+  overrideImageSprite: 0
+  overrideImageColor: 0
+  bakedImageSprite: {fileID: 0}
+  bakedImageColor: {r: 1, g: 1, b: 1, a: 1}
+  overrideButtonColors: 0
+  bakedButtonColors:
+    m_NormalColor: {r: 0, g: 0, b: 0, a: 0}
+    m_HighlightedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_PressedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_SelectedColor: {r: 0, g: 0, b: 0, a: 0}
+    m_DisabledColor: {r: 0, g: 0, b: 0, a: 0}
+    m_ColorMultiplier: 0
+    m_FadeDuration: 0
+  overrideButtonTransition: 0
+  runtimeCreateIfMissing: 0
+  editorLocked: 0
+  overrideActiveState: 0
+  overrideSiblingOrder: 0
+  overrideLayoutComponents: 1

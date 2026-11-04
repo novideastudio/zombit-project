@@ -72,8 +72,13 @@ public class ItemDetailPanel : MonoBehaviour
         if (statsText) statsText.text = sb.ToString();
 
         if (equipButtonLabel) equipButtonLabel.text = equipped ? "DESEQUIPAR" : "EQUIPAR";
-        if (sellButton) sellButton.gameObject.SetActive(!equipped);
-        if (sellLabel) sellLabel.text = "VENDER  " + item.sellValue + " OURO";
+        bool canSell = GameSession.IsCampaign;
+        if (sellButton)
+        {
+            sellButton.gameObject.SetActive(!equipped);
+            sellButton.interactable = canSell;
+        }
+        if (sellLabel) sellLabel.text = canSell ? "VENDER  " + item.sellValue + " OURO" : "VENDA NA CAMPANHA";
     }
 
     static void AppendStat(StringBuilder sb, string label, float value, float currentValue, bool compare)
@@ -159,6 +164,7 @@ public class ItemDetailPanel : MonoBehaviour
 
     void OnSell()
     {
+        if (!GameSession.IsCampaign) return;
         if (Current == null || isEquipped || !inventory) return;
         inventory.Sell(Current);
         Hide();

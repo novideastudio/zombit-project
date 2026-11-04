@@ -34,6 +34,9 @@ public class LootDropper : MonoBehaviour
         if (e.data.tier == Tier.Elite) elitesKilled++;
         else if (e.data.tier == Tier.Boss) bossesKilled++;
 
+        // Modos especiais contam abates para as suas estatisticas, mas nao concedem ouro, XP ou sucata.
+        if (!GameSession.IsCampaign) return;
+
         var loc = GameSession.Location;
         goldAcc += e.data.gold * Balance.GoldScale(loc) * goldMult * (1f + affixGoldPercent + partnerAffixGoldPercent + thirdAffixGoldPercent);
         int g = Mathf.FloorToInt(goldAcc); gold += g; goldAcc -= g;

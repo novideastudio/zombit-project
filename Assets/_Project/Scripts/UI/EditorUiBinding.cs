@@ -4,7 +4,9 @@ using UnityEngine.UI;
 /// <summary>Utilidades para ligar o codigo aos prefabs de UI feitos no Editor (procura por NOME de objeto).</summary>
 public static class EditorUiBinding
 {
-    public const string ResourcesFolder = "UI/Screens/";
+    public const string ScreensFolder = UIResourcePaths.Screens;
+    public const string ComponentsFolder = UIResourcePaths.Components;
+    public const string OverlaysFolder = UIResourcePaths.Overlays;
 
     public static bool Enabled => UITheme.Current.useEditorUI;
 

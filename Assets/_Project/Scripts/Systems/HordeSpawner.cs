@@ -31,6 +31,8 @@ public class HordeSpawner : MonoBehaviour
     [Range(0f, 0.5f)] public float spitterShare = 0.08f;
     public float furyStart;
     public int maxAlive = 55;
+    [Tooltip("Executa a horda infinita do Last Stand, com estagios e chefes recorrentes.")]
+    public bool endlessMode;
 
     const float EliteCost = 4f, EliteFromSeconds = 25f, SpitterFromSeconds = 40f, MaxCreditsBacklog = 3f;
     static readonly Color SpitterTint = new Color(0.66f, 1f, 0.55f);
@@ -41,10 +43,12 @@ public class HordeSpawner : MonoBehaviour
     bool nextIsElite, rolled, bossSpawned;
     Enemy bossRef;
     bool bossAdds1, bossAdds2;
+    float runtimeSpitterShare;
 
     IEnumerator Start()
     {
         roster = EnemyRoster.Get(theme);
+        runtimeSpitterShare = spitterShare;
         if (roster == null || roster.commons.Count == 0)
         {
             Debug.LogError($"Zombit: não há inimigos comuns configurados para o tema '{theme}'.");
@@ -53,6 +57,12 @@ public class HordeSpawner : MonoBehaviour
         if (spawnPoints == null || spawnPoints.Length == 0 || hero == null)
         {
             Debug.LogError("Zombit: HordeSpawner precisa de um herói e de pontos de nascimento.");
+            yield break;
+        }
+
+        if (endlessMode || GameSession.IsLastStand)
+        {
+            yield return RunEndless();
             yield break;
         }
 
@@ -147,6 +157,118 @@ public class HordeSpawner : MonoBehaviour
         GameEvents.MissionComplete?.Invoke();
     }
 
+
+    /// <summary>
+    /// Last Stand: sem cronometro final. A cada tres minutos sobe o estagio; a horda acelera,
+    /// ganha elites e os chefes reaparecem em intervalos de cinco minutos.
+    /// </summary>
+    IEnumerator RunEndless()
+    {
+        const float stageDuration = LastStandController.StageSeconds;
+        const float firstBossAt = 300f;
+        const float bossInterval = 300f;
+        const float furyAt = 480f;
+        const float endlessRamp = 0.004f;
+
+        float baseHealth = Enemy.HealthMult;
+        float baseBossHealth = Enemy.BossHealthMult;
+        float baseDamage = Enemy.DamageMult;
+        float baseSpeed = Enemy.SpeedMult;
+        float nextBossAt = firstBossAt;
+        bool bossPending = false;
+        int phase = 1;
+
+        GameEvents.HordeMode = true;
+        GameEvents.HordeTimeLeft = -1f;
+        GameEvents.HordeFury = false;
+        GameEvents.WaveChanged?.Invoke(phase, 0);
+
+        while (enabled)
+        {
+            float dt = Time.deltaTime;
+            t += dt;
+
+            int nextPhase = 1 + Mathf.FloorToInt(t / stageDuration);
+            if (nextPhase != phase)
+            {
+                phase = nextPhase;
+                GameEvents.WaveChanged?.Invoke(phase, 0);
+                StartCoroutine(PhaseBurst(phase));
+            }
+
+            float stageStep = Mathf.Max(0, phase - 1);
+            float healthScale = 1f + stageStep * 0.14f;
+            float damageScale = 1f + stageStep * 0.075f;
+            float speedScale = 1f + stageStep * 0.018f;
+            Enemy.HealthMult = baseHealth * healthScale;
+            Enemy.BossHealthMult = baseBossHealth * (1f + stageStep * 0.28f);
+            Enemy.DamageMult = baseDamage * damageScale;
+            Enemy.SpeedMult = baseSpeed * speedScale;
+
+            if (t >= furyAt)
+            {
+                float fury = (t - furyAt) / 30f;
+                Enemy.FuryDamage = Mathf.Min(2.5f, 1f + 0.10f * fury);
+                Enemy.FurySpeed = Mathf.Min(1.5f, 1f + 0.05f * fury);
+                GameEvents.HordeFury = true;
+            }
+
+            if (roster.boss != null && t >= nextBossAt) bossPending = true;
+            if (bossPending && (bossRef == null || bossRef.IsDead))
+            {
+                bossRef = Spawn(roster.boss, false);
+                bossPending = false;
+                nextBossAt = t + bossInterval;
+                bossAdds1 = false;
+                bossAdds2 = false;
+            }
+
+            // Reforcos do chefe a 75% e 40% da vida.
+            if (bossRef != null && !bossRef.IsDead && roster.commons.Count > 0)
+            {
+                Health bossHealth = bossRef.GetComponent<Health>();
+                float r = bossHealth != null && bossHealth.max > 0f
+                    ? Mathf.Clamp01(bossHealth.Current / bossHealth.max)
+                    : 1f;
+                if (!bossAdds1 && r <= Balance.BossAddsFirstAt)
+                {
+                    bossAdds1 = true;
+                    StartCoroutine(BossAdds(Balance.BossAddsFirst));
+                }
+                if (!bossAdds2 && r <= Balance.BossAddsSecondAt)
+                {
+                    bossAdds2 = true;
+                    StartCoroutine(BossAdds(Balance.BossAddsSecond));
+                }
+            }
+
+            float rate = baseRate * hordeRate * countMultiplier * (1f + endlessRamp * t)
+                * (1f + stageStep * 0.16f);
+            credits = Mathf.Min(credits + rate * dt, MaxCreditsBacklog + EliteCost);
+            float stageEliteShare = Mathf.Clamp(eliteShare + stageStep * 0.012f, 0.04f, 0.30f);
+            float stageSpitterShare = Mathf.Clamp(spitterShare + stageStep * 0.010f, 0.03f, 0.30f);
+
+            while (Enemy.Alive.Count < maxAlive)
+            {
+                if (!rolled)
+                {
+                    nextIsElite = roster.elites.Count > 0 && t >= EliteFromSeconds && Random.value < stageEliteShare;
+                    rolled = true;
+                }
+                float cost = nextIsElite ? EliteCost : 1f;
+                if (credits < cost) break;
+                credits -= cost;
+                rolled = false;
+                if (nextIsElite) Spawn(roster.elites[Random.Range(0, roster.elites.Count)], false);
+                else Spawn(roster.commons[Random.Range(0, roster.commons.Count)], true);
+            }
+
+            // Sobrescreve a participacao de cuspidores com o crescimento de ameaca do Last Stand.
+            runtimeSpitterShare = stageSpitterShare;
+            yield return null;
+        }
+    }
+
     IEnumerator BossAdds(int count)
     {
         for (int i = 0; i < count; i++)
@@ -192,7 +314,7 @@ public class HordeSpawner : MonoBehaviour
         var enemy = EnemyFactory.Spawn(e, pos, hero, mod);
 
         // Parte dos comuns nasce como cuspidor (ataca de longe): obriga o jogador a priorizar alvos.
-        if (enemy != null && canBeSpitter && t >= SpitterFromSeconds && e.tier == Tier.Common && Random.value < spitterShare)
+        if (enemy != null && canBeSpitter && t >= SpitterFromSeconds && e.tier == Tier.Common && Random.value < runtimeSpitterShare)
         {
             enemy.kindOverride = EnemyKind.Spitter;
             var motion = enemy.GetComponent<PixelCharacterMotion>();

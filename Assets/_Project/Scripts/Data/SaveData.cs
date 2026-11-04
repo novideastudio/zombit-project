@@ -64,13 +64,14 @@ public class LostItemRecord
 [Serializable]
 public class SaveData
 {
+    public string commerceJson = ""; // DAILY_COMMERCE_STATE_V1
     public string regionRewardsJson = ""; // ZOMBIT_REGIONAL_STATE_V1
-    public int version = 7;
+    public int version = 10;
     public int slot = 1;
     public string selectedSurvivor = "assaulter";
     /// <summary>Segundo slot do esquadrao (modo dupla). Vazio = jogar solo. Campo novo: saves antigos ficam solo.</summary>
     public string selectedPartner = "";
-    /// <summary>Terceiro slot (modo trio). So entra em campo no Pesadelo; nos outros niveis fica guardado.</summary>
+    /// <summary>Terceiro slot (modo trio). Entra na campanha no Pesadelo e nos modos especiais que permitem trio.</summary>
     public string selectedThird = "";
     // Nickname shown over the survivor during missions; added in version 4.
     public string playerNickname = "";
@@ -93,6 +94,23 @@ public class SaveData
     // Sucata: dropa dos zumbis, NUNCA se perde ao morrer. Gasta na oficina (inventario) para melhorar itens.
     // Campo aditivo: saves antigos comecam com 0.
     public int scrap;
+
+    // ---- economias independentes dos modos especiais ----
+    public int resistanceTokens;
+    public int bossTokens;
+    public int defenseMaterials;
+    public int bestLastStandSeconds;
+    public int bestLastStandStage;
+    // ---- Boss Rush records (v9) ----
+    public int bestBossRushBossesDefeated;
+    public int bestBossRushDifficulty;
+    public int bestBossRushClearSeconds;
+    // ---- Refuge Defense records and permanent facility upgrades (v10) ----
+    public int bestRefugeDefenseWave;
+    public int bestRefugeDefenseDifficulty;
+    public int refugeGeneratorLevel;
+    public int refugeTurretLevel;
+    public int refugeBarricadeLevel;
 
     // Migração aditiva para saves anteriores à árvore de habilidades (versão 2 ou inferior).
     public void MigrateFromPreviousVersions()
@@ -165,6 +183,22 @@ public class SaveData
             }
             version = 7;
         }
+        if (version < 8) version = 8; // Campos novos sao aditivos; saves antigos recebem zero automaticamente.
+        if (version < 9) version = 9; // Records do Boss Rush sao aditivos.
+        if (version < 10) version = 10; // Refuge Defense records and upgrades are additive.
+        resistanceTokens = Math.Max(0, resistanceTokens);
+        bossTokens = Math.Max(0, bossTokens);
+        defenseMaterials = Math.Max(0, defenseMaterials);
+        bestLastStandSeconds = Math.Max(0, bestLastStandSeconds);
+        bestLastStandStage = Math.Max(0, bestLastStandStage);
+        bestBossRushBossesDefeated = Math.Max(0, bestBossRushBossesDefeated);
+        bestBossRushDifficulty = Math.Max(0, bestBossRushDifficulty);
+        bestBossRushClearSeconds = Math.Max(0, bestBossRushClearSeconds);
+        bestRefugeDefenseWave = Math.Max(0, bestRefugeDefenseWave);
+        bestRefugeDefenseDifficulty = Math.Max(0, bestRefugeDefenseDifficulty);
+        refugeGeneratorLevel = Math.Max(0, Math.Min(5, refugeGeneratorLevel));
+        refugeTurretLevel = Math.Max(0, Math.Min(5, refugeTurretLevel));
+        refugeBarricadeLevel = Math.Max(0, Math.Min(5, refugeBarricadeLevel));
         NormalizeSquad();
     }
 

@@ -37,7 +37,7 @@ public sealed class HeroDamageFeedback : MonoBehaviour
         }
     }
 
-    // Tremor pedido por outros efeitos (explosao, onda de choque). Consumido no LateUpdate.
+    // Tremor pedido por outros efeitos (explosoes e impactos). Consumido no LateUpdate.
     static float pendingTrauma;
     public static void Shake(float amount) { pendingTrauma = Mathf.Min(0.9f, pendingTrauma + Mathf.Max(0f, amount)); }
 

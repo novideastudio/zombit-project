@@ -18,7 +18,7 @@ public class MissionSetup : MonoBehaviour
         var loc = GameSession.Location;
         var save = GameSession.Save;
         if (save != null) save.MigrateFromPreviousVersions();
-        ProgressionRuntime.BeginRun(save, loc); // ZOMBIT_PROGRESSION_BEGIN_V1
+        if (GameSession.IsCampaign) ProgressionRuntime.BeginRun(save, loc); // ZOMBIT_PROGRESSION_BEGIN_V1
 
         var stats = FindFirstObjectByType<PlayerStats>();
         if (stats == null)
@@ -42,7 +42,7 @@ public class MissionSetup : MonoBehaviour
         var partnerDef = GameSession.Partner;
         if (partnerDef != null && partnerDef.id != s.id) supportDefs.Add(partnerDef);
         var thirdDef = GameSession.Third;
-        if (supportDefs.Count == 1 && thirdDef != null && (GameSession.Difficulty >= HeroSquad.TrioDifficulty || GameSession.IsRange)
+        if (supportDefs.Count == 1 && thirdDef != null && (GameSession.Difficulty >= HeroSquad.TrioDifficulty || GameSession.IsRange || GameSession.IsLastStand || GameSession.IsBossRush || GameSession.IsRefugeDefense)
             && thirdDef.id != s.id && thirdDef.id != partnerDef.id) supportDefs.Add(thirdDef);
 
         var supportStats = new List<PlayerStats>();
@@ -62,7 +62,8 @@ public class MissionSetup : MonoBehaviour
         // ---- principal (frente) ----
         var prog = save.GetProgress(s.id);
         var skillBonuses = SkillTreeSystem.GetBonuses(s.id, prog);
-        float frontX = HeroSquad.FrontXFor(squadSize), stepX = HeroSquad.OffsetXFor(squadSize);
+        float frontX = GameSession.IsRefugeDefense ? -1.45f : HeroSquad.FrontXFor(squadSize);
+        float stepX = GameSession.IsRefugeDefense ? 0.95f : HeroSquad.OffsetXFor(squadSize);
         ConfigureHero(stats, s, prog, skillBonuses, diff, new Vector2(frontX, roadY), 0, squadSize);
         HeroSquad.Register(stats, s, true, prog.level, prog.xp);
 
@@ -103,7 +104,7 @@ public class MissionSetup : MonoBehaviour
             loot.dropChanceMult = drop;
             loot.partnerAffixGoldPercent = 0f;
             loot.thirdAffixGoldPercent = 0f;
-            loot.scrapMult = ScrapRules.MissionMult(diff, loc);   // sucata por abate (fica mesmo se morrer)
+            loot.scrapMult = GameSession.IsCampaign ? ScrapRules.MissionMult(diff, loc) : 0f;   // modos especiais usam moeda propria
         }
 
         // Trio: zumbis e chefes com mais vida (so aumentar a horda nao segura 3 armas).
@@ -159,13 +160,24 @@ public class MissionSetup : MonoBehaviour
             }
         }
 
+        // This mode uses its own wave director even if the regional roster falls back to defaults.
+        if (GameSession.IsRefugeDefense) ws.enabled = false;
+
         // Mais atiradores = mais DPS: hordas maiores na dupla (x1,5) e no trio (x2).
         float squadMult = HeroSquad.HordeMultFor(squadSize);
         var roster = EnemyRoster.Get(loc.theme);
         if (roster.HasArt)
         {
             ws.enabled = false;
-            if (tuning.hordeMode)
+            if (GameSession.IsRefugeDefense)
+            {
+                // RefugeDefenseController owns its five waves and targets the generator, not the squad.
+            }
+            else if (GameSession.IsBossRush)
+            {
+                // BossRushController controls only the boss sequence, without common waves.
+            }
+            else if (tuning.hordeMode || GameSession.IsLastStand)
             {
                 // Horda continua: sem pausas entre waves (veja HordeSpawner e GameTuning).
                 var hs = ws.gameObject.AddComponent<HordeSpawner>();
@@ -184,6 +196,14 @@ public class MissionSetup : MonoBehaviour
                 hs.eliteShare = diff.eliteShare;
                 hs.spitterShare = diff.spitterShare;
                 hs.furyStart = diff.furyStart;
+                hs.endlessMode = GameSession.IsLastStand;
+                if (GameSession.IsLastStand)
+                {
+                    hs.phases = 1;
+                    hs.ramp = 0.004f;
+                    hs.furyStart = 480f;
+                    hs.hasBoss = true;
+                }
             }
             else
             {
@@ -212,7 +232,7 @@ public class MissionSetup : MonoBehaviour
         stats.gameObject.AddComponent<SurvivorAbilities>().Init(s, skillBonuses);
         for (int i = 0; i < supportStats.Count; i++)
             supportStats[i].gameObject.AddComponent<SurvivorAbilities>().Init(supportDefs[i], supportBonuses[i]);
-        // Onda de choque [ESPACO] + foco por clique: um controle so (no principal; passa ao apoio se ele cair).
+        // Foco de disparo por clique: todos os sobreviventes concentram o fogo no alvo selecionado.
         if (stats.GetComponent<ActiveSkills>() == null) stats.gameObject.AddComponent<ActiveSkills>();
 
         // Pool de recompensas: itens da cena + conteudo extra (+ exclusivos no Pesadelo).
@@ -220,7 +240,7 @@ public class MissionSetup : MonoBehaviour
 
         // Registra a run no save. Se o jogo for fechado antes do fim, ao reabrir conta como derrota.
         bool insured = false;
-        if (!GameSession.DebugRun && !GameSession.IsRange && save != null)
+        if (GameSession.IsCampaign && !GameSession.DebugRun && !GameSession.IsRange && save != null)
         {
             insured = GameSession.InsuranceBought;
             save.activeRun = new ActiveRun
@@ -243,9 +263,22 @@ public class MissionSetup : MonoBehaviour
 
         var pause = new GameObject("MissionPauseMenu").AddComponent<MissionPauseMenu>();
         pause.flow = flow;
+        if (GameSession.IsLastStand) new GameObject("LastStandController").AddComponent<LastStandController>();
+        if (GameSession.IsBossRush)
+        {
+            var bossRush = new GameObject("BossRushController").AddComponent<BossRushController>();
+            var bossRushSpawner = FindFirstObjectByType<WaveSpawner>();
+            bossRush.Initialise(hero.transform, bossRushSpawner != null ? bossRushSpawner.spawnPoints : null);
+        }
+        if (GameSession.IsRefugeDefense)
+        {
+            var refuge = new GameObject("RefugeDefenseController").AddComponent<RefugeDefenseController>();
+            var refugeSpawner = FindFirstObjectByType<WaveSpawner>();
+            refuge.Initialise(hero.transform, refugeSpawner != null ? refugeSpawner.spawnPoints : null);
+        }
 
         // Offensive posture is opt-in and never installed in DPS training.
-        if (!GameSession.IsRange && GetComponent<SquadCombatPosture>() == null)
+        if (!GameSession.IsRange && !GameSession.IsRefugeDefense && GetComponent<SquadCombatPosture>() == null)
             gameObject.AddComponent<SquadCombatPosture>();
         if (!GameSession.IsRange && GetComponent<HudPolish>() == null)
             gameObject.AddComponent<HudPolish>();

@@ -52,9 +52,7 @@ public static class UIFactory
         c.renderMode = RenderMode.ScreenSpaceOverlay;
         c.sortingOrder = order;
         var s = go.AddComponent<CanvasScaler>();
-        s.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        s.referenceResolution = new Vector2(1920, 1080);
-        s.matchWidthOrHeight = 0.5f;
+        UIResolution.Apply(s);
         go.AddComponent<GraphicRaycaster>();
         EnsureEventSystem();
         return c;

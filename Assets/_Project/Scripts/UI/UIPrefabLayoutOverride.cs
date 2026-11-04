@@ -38,6 +38,18 @@ public sealed class UIPrefabLayoutOverride : MonoBehaviour
     [HideInInspector] public ColorBlock bakedButtonColors;
     public bool overrideButtonTransition = true;
 
+    [Header("Runtime Creation")]
+    [Tooltip("If this object has no matching object in the runtime-generated screen, clone this visual object (and its children) into the screen. Use for new decorative panels, labels, icons and visual button templates added to Screen_* prefabs.")]
+    public bool runtimeCreateIfMissing = false;
+
+    [Header("Editor Visual")]
+    [Tooltip("Impede mover, redimensionar ou excluir este objeto pelo Editor Visual. Não altera a execução do jogo.")]
+    public bool editorLocked = false;
+    [Tooltip("Permite refletir o estado visível/oculto do prefab no objeto correspondente em runtime. Use somente para elementos visuais estáticos.")]
+    public bool overrideActiveState = false;
+    [Tooltip("Permite refletir a ordem de camada do prefab no objeto correspondente em runtime.")]
+    public bool overrideSiblingOrder = false;
+
     [Header("Layout Components")]
     [Tooltip("Apply LayoutElement, LayoutGroup, ContentSizeFitter, AspectRatioFitter and CanvasGroup settings from the prefab.")]
     public bool overrideLayoutComponents = true;

@@ -347,8 +347,14 @@ public class Enemy : MonoBehaviour
         RefreshAim();
         if (isTrainingDummy) return;   // boneco parado: sem fila, sem ataque
         EnsureKind();
-        // Dupla/trio: o alvo e sempre o sobrevivente vivo que esta mais a frente (reavaliado a cada frame, inclusive apos trocar a formacao).
-        if (HeroSquad.Count > 0) // reavalia todo frame: quem esta na frente toma o dano
+        // Refuge Defense routes the entire wave to the generator. Other modes keep the
+        // normal front-most-survivor targeting used by solo/duo/trio combat.
+        if (GameSession.IsRefugeDefense)
+        {
+            Transform defenseTarget = RefugeDefenseController.DefenseTarget;
+            if (defenseTarget != null && defenseTarget != target) { target = defenseTarget; targetHealth = null; }
+        }
+        else if (HeroSquad.Count > 0)
         {
             var next = HeroSquad.FrontTarget();
             if (next != null && next != target) { target = next; targetHealth = null; }
@@ -425,7 +431,11 @@ public class Enemy : MonoBehaviour
             {
                 if (targetHealth == null) targetHealth = target.GetComponent<Health>();
                 if (targetHealth != null)
-                    RegionalEffects.TakeDirect(targetHealth, data.damage * DamageMult * damageBoost * FuryDamage); // ZOMBIT_REGIONAL_DIRECT_V1
+                {
+                    float incoming = data.damage * DamageMult * damageBoost * FuryDamage;
+                    if (!RefugeDefenseController.TryReceiveGeneratorDamage(targetHealth, incoming))
+                        RegionalEffects.TakeDirect(targetHealth, incoming); // ZOMBIT_REGIONAL_DIRECT_V1
+                }
             }
         }
 
@@ -480,7 +490,20 @@ public class Enemy : MonoBehaviour
         float dmg = data.damage * DamageMult * ExplosionDamageMult;
         float x = transform.position.x;
 
-        // Coleta primeiro e so depois aplica o dano: Take pode derrubar alguem e mexer na lista do esquadrao.
+        if (GameSession.IsRefugeDefense)
+        {
+            // In this mode the generator is the only objective. Explosive elites damage
+            // its barricade first instead of unexpectedly hurting the idle squad behind it.
+            if (target != null && Mathf.Abs(target.position.x - x) <= ExplosionRadius)
+            {
+                if (targetHealth == null) targetHealth = target.GetComponent<Health>();
+                if (targetHealth != null && !RefugeDefenseController.TryReceiveGeneratorDamage(targetHealth, dmg))
+                    RegionalEffects.TakeDirect(targetHealth, dmg);
+            }
+            return;
+        }
+
+        // Campaign and other modes: collect all nearby survivors before applying damage.
         explosionVictims.Clear();
         if (target != null)
         {

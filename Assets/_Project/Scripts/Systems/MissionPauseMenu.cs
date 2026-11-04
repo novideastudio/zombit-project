@@ -37,6 +37,11 @@ public class MissionPauseMenu : MonoBehaviour
     {
         if (flow == null) flow = FindFirstObjectByType<MissionFlow>();
         if (flow != null && flow.IsFinished) return;
+        if (GameSession.IsRange)
+        {
+            ExitTrainingDirectly();
+            return;
+        }
         if (!isOpen)
         {
             isOpen = true;
@@ -80,7 +85,7 @@ public class MissionPauseMenu : MonoBehaviour
     Canvas SpawnEditorOverlay(string prefabName)
     {
         if (editorUiBaking || !EditorUiBinding.Enabled) return null;
-        var prefab = Resources.Load<GameObject>(EditorUiBinding.ResourcesFolder + prefabName);
+        var prefab = Resources.Load<GameObject>(EditorUiBinding.OverlaysFolder + prefabName);
         if (prefab == null)
         {
             Debug.LogWarning("[ZomBit UI] Prefab '" + prefabName + "' nao encontrado. Usando a UI em codigo. Rode ZomBit > UI > 1 - Gerar prefabs das telas.");
@@ -100,8 +105,17 @@ public class MissionPauseMenu : MonoBehaviour
         var prefabCanvas = SpawnEditorOverlay("Overlay_pause");
         if (prefabCanvas != null)
         {
+            var titleText = EditorUiBinding.Find<TMP_Text>(prefabCanvas.transform, "PauseTitle");
+            if (titleText != null) titleText.text = "PAUSADO";
+            var subtitleText = EditorUiBinding.Find<TMP_Text>(prefabCanvas.transform, "PauseSubtitle");
+            if (subtitleText != null) subtitleText.text = "A missão está pausada.";
             EditorUiBinding.Hook(EditorUiBinding.Find<Button>(prefabCanvas.transform, "BtnResume"), ClosePause);
-            EditorUiBinding.Hook(EditorUiBinding.Find<Button>(prefabCanvas.transform, "BtnLeave"), BuildExitConfirmation);
+            var leaveButton = EditorUiBinding.Find<Button>(prefabCanvas.transform, "BtnLeave");
+            var leaveLabel = leaveButton != null ? leaveButton.GetComponentInChildren<TMP_Text>(true) : null;
+            if (leaveLabel != null)
+                leaveLabel.text = GameSession.IsRange ? "VOLTAR AO MENU" : GameSession.IsRefugeDefense ? "VOLTAR AO ACAMPAMENTO" : "VOLTAR AO MAPA";
+            if (GameSession.IsRange) EditorUiBinding.Hook(leaveButton, ExitTrainingDirectly);
+            else EditorUiBinding.Hook(leaveButton, BuildExitConfirmation);
             return;
         }
         var c = NewOverlay();
@@ -114,28 +128,53 @@ public class MissionPauseMenu : MonoBehaviour
 
         var resume = UIFactory.Btn(panel, "Continuar", 30, ClosePause, new Color(0.106f, 0.36f, 0.22f, 1f), "BtnResume");
         UIFactory.Place((RectTransform)resume.transform, new Vector2(0.5f, 1f), new Vector2(0f, -205f), new Vector2(470f, 70f));
-        var leave = UIFactory.Btn(panel, "Voltar ao Mapa", 30, BuildExitConfirmation, UIFactory.Red, "BtnLeave");
+        var leave = UIFactory.Btn(panel, GameSession.IsRange ? "Voltar ao Menu" : GameSession.IsRefugeDefense ? "Voltar ao Acampamento" : "Voltar ao Mapa", 30,
+            GameSession.IsRange ? (System.Action)ExitTrainingDirectly : BuildExitConfirmation, UIFactory.Red, "BtnLeave");
         UIFactory.Place((RectTransform)leave.transform, new Vector2(0.5f, 1f), new Vector2(0f, -292f), new Vector2(470f, 70f));
         var hint = UIFactory.Txt(panel, "ESC: continuar a missão", 20, TextAlignmentOptions.Center, UIFactory.Gray, "EscapeHint");
         UIFactory.Place(hint.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 24f), new Vector2(560f, 32f));
     }
 
+    void ExitTrainingDirectly()
+    {
+        if (flow == null) flow = FindFirstObjectByType<MissionFlow>();
+        if (flow != null) flow.ExitTrainingToMap();
+        else
+        {
+            Time.timeScale = 1f;
+            GameSession.Mode = GameMode.Campaign;
+            GameSession.Location = null;
+            GameSession.OpenMapOnLoad = false;
+            GameSession.OpenHomeOnLoad = !GameSession.DebugRun && GameSession.Save != null;
+            UnityEngine.SceneManagement.SceneManager.LoadScene(GameSession.MenuSceneIndex);
+        }
+    }
+
     void BuildExitConfirmation()
     {
+        if (GameSession.IsRange) { ExitTrainingDirectly(); return; }
         confirmingExit = true;
         var prefabCanvas = SpawnEditorOverlay("Overlay_confirm");
         if (prefabCanvas != null)
         {
+            var titleText = EditorUiBinding.Find<TMP_Text>(prefabCanvas.transform, "ConfirmTitle");
+            if (titleText != null) titleText.text = GameSession.IsRefugeDefense ? "ENCERRAR A DEFESA?" : "CONFIRMAR SAÍDA?";
             var bodyText = EditorUiBinding.Find<TMP_Text>(prefabCanvas.transform, "ConfirmBody");
             if (bodyText != null) bodyText.text = ConfirmBodyText();
-            EditorUiBinding.Hook(EditorUiBinding.Find<Button>(prefabCanvas.transform, "BtnCancel"), BuildPausePanel);
-            EditorUiBinding.Hook(EditorUiBinding.Find<Button>(prefabCanvas.transform, "BtnConfirm"), ConfirmExit);
+            var cancelButton = EditorUiBinding.Find<Button>(prefabCanvas.transform, "BtnCancel");
+            var cancelLabel = cancelButton != null ? cancelButton.GetComponentInChildren<TMP_Text>(true) : null;
+            if (cancelLabel != null) cancelLabel.text = "CONTINUAR JOGANDO";
+            var confirmButton = EditorUiBinding.Find<Button>(prefabCanvas.transform, "BtnConfirm");
+            var confirmLabel = confirmButton != null ? confirmButton.GetComponentInChildren<TMP_Text>(true) : null;
+            if (confirmLabel != null) confirmLabel.text = GameSession.IsRefugeDefense ? "VOLTAR AO ACAMPAMENTO" : "SAIR PARA O MAPA";
+            EditorUiBinding.Hook(cancelButton, BuildPausePanel);
+            EditorUiBinding.Hook(confirmButton, ConfirmExit);
             return;
         }
         var c = NewOverlay();
         var panel = c.transform.Find("PausePanel");
         if (panel == null) return;
-        var title = UIFactory.Txt(panel, GameSession.IsRange ? "SAIR DO ESTANDE?" : "ABANDONAR A MISSÃO?", 42, TextAlignmentOptions.Center, UIFactory.Red, "ConfirmTitle");
+        var title = UIFactory.Txt(panel, GameSession.IsRange ? "SAIR DO ESTANDE?" : GameSession.IsLastStand ? "ENCERRAR A ÚLTIMA RESISTÊNCIA?" : GameSession.IsBossRush ? "ENCERRAR A CORRIDA DOS CHEFES?" : GameSession.IsRefugeDefense ? "ENCERRAR A DEFESA?" : "ABANDONAR A MISSÃO?", 42, TextAlignmentOptions.Center, UIFactory.Red, "ConfirmTitle");
         UIFactory.Place(title.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -42f), new Vector2(600f, 65f));
         var body = UIFactory.Txt(panel,
             ConfirmBodyText(), 22, TextAlignmentOptions.Center, Color.white, "ConfirmBody");
@@ -143,7 +182,7 @@ public class MissionPauseMenu : MonoBehaviour
 
         var cancel = UIFactory.Btn(panel, "Continuar jogando", 25, BuildPausePanel, new Color(0.149f, 0.188f, 0.235f, 1f), "BtnCancel");
         UIFactory.Place((RectTransform)cancel.transform, new Vector2(0.5f, 0f), new Vector2(-150f, 36f), new Vector2(280f, 68f));
-        var confirm = UIFactory.Btn(panel, "Sair para o Mapa", 25, ConfirmExit, new Color(0.588f, 0.075f, 0.09f, 1f), "BtnConfirm");
+        var confirm = UIFactory.Btn(panel, GameSession.IsRefugeDefense ? "Voltar ao Acampamento" : "Sair para o Mapa", 25, ConfirmExit, new Color(0.588f, 0.075f, 0.09f, 1f), "BtnConfirm");
         UIFactory.Place((RectTransform)confirm.transform, new Vector2(0.5f, 0f), new Vector2(150f, 36f), new Vector2(280f, 68f));
     }
 
@@ -151,6 +190,9 @@ public class MissionPauseMenu : MonoBehaviour
     static string ConfirmBodyText()
     {
         if (GameSession.IsRange) return "Sair do estande de tiro.\nSem penalidade: nenhum nível, XP ou item é perdido.\nO equipamento trocado aqui fica salvo.";
+        if (GameSession.IsLastStand) return "Encerrar a tentativa atual?\nVocê mantém 50% das Fichas de Resistência calculadas até aqui.\nA extração completa garante 100% + bônus. Nenhum equipamento será perdido.";
+        if (GameSession.IsBossRush) return "Encerrar a tentativa atual?\nVocê mantém as Fichas de Chefe de cada chefe já derrotado.\nNenhum XP de campanha, ouro ou equipamento será perdido.";
+        if (GameSession.IsRefugeDefense) return "Deseja encerrar a defesa agora?\nVocê mantém os materiais ganhos nas ondas concluídas.\nNenhum XP de campanha, ouro ou equipamento será perdido.";
         var d = Difficulties.Get(GameSession.Difficulty);
         string loss = d.itemLossChance <= 0f
             ? "Neste nível não há risco de perder equipamento."
@@ -164,6 +206,19 @@ public class MissionPauseMenu : MonoBehaviour
     void ConfirmExit()
     {
         if (flow == null) flow = FindFirstObjectByType<MissionFlow>();
+        // No Last Stand, o resultado precisa ficar acima da pausa. Nos outros modos,
+        // preservamos o comportamento anterior (inclusive a janela de erro do treinamento).
+        if (GameSession.IsLastStand || GameSession.IsBossRush || GameSession.IsRefugeDefense)
+        {
+            if (pauseCanvas != null)
+            {
+                pauseCanvas.gameObject.SetActive(false);
+                Destroy(pauseCanvas.gameObject);
+            }
+            pauseCanvas = null;
+            isOpen = false;
+            confirmingExit = false;
+        }
         if (flow != null) flow.AbandonToMap();
         else
         {

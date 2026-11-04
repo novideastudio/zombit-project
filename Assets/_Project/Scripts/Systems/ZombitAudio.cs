@@ -3,8 +3,8 @@ using UnityEngine;
 
 /// <summary>
 /// Audio do Zombit Survival.
-///  - Efeitos e musica vem de arquivos em Resources/Audio (tiros por arma, impacto em carne, tiro que erra,
-///    morte de zumbi/chefe, explosao, onda de choque, level up, trovao, chuva e a trilha sombria).
+///  - Efeitos e musica vem de arquivos em Resources/Audio (tiros por arma, impactos, mortes, explosoes,
+///    level up, interface, clima de missao e trilha sonora).
 ///  - Cada categoria tem VARIACOES (nome_1, nome_2, ...): o codigo sorteia sem repetir a anterior.
 ///  - Para trocar por gravacoes reais basta substituir os arquivos de mesmo nome (WAV ou OGG).
 ///  - Se um arquivo nao existir, cai num som sintetizado simples (o jogo nunca fica mudo nem quebra).
@@ -13,7 +13,8 @@ using UnityEngine;
 public sealed class ZombitAudio : MonoBehaviour
 {
     static ZombitAudio instance;
-    AudioSource sfxSource, musicSource, rainSource;
+    AudioSource sfxSource, musicSource, rainSource, campfireSource;
+    bool campfireEnabled;
     readonly List<AudioSource> gunVoices = new List<AudioSource>(12);
     readonly List<AudioSource> generalVoices = new List<AudioSource>(12);
     readonly List<AudioSource> priorityVoices = new List<AudioSource>(4);
@@ -33,7 +34,7 @@ public sealed class ZombitAudio : MonoBehaviour
 
     // Mixagem relativa por categoria (os arquivos sao normalizados no mesmo pico).
     const float GunGain = 0.62f, HitGain = 0.55f, CritHitGain = 0.7f, MissGain = 0.32f,
-                DeathGain = 0.78f, BossDeathGain = 0.95f, ExplosionGain = 1.0f, ShockGain = 0.9f,
+                DeathGain = 0.78f, BossDeathGain = 0.95f, ExplosionGain = 1.0f,
                 LevelUpGain = 0.85f, UiGain = 0.6f, ThunderGain = 0.9f, RainGain = 0.55f;
 
     float rainTarget, rainCurrent;
@@ -42,6 +43,12 @@ public sealed class ZombitAudio : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void Bootstrap()
     {
+#if UNITY_EDITOR
+        // O bootstrap de audio e exclusivo do runtime. O UIBaker monta telas no Editor
+        // chamando os mesmos builders do menu; nesse contexto nunca podemos criar um
+        // objeto persistente com DontDestroyOnLoad.
+        if (!Application.isPlaying) return;
+#endif
         if (instance != null) return;
         var go = new GameObject("ZombitAudio");
         DontDestroyOnLoad(go);
@@ -62,6 +69,9 @@ public sealed class ZombitAudio : MonoBehaviour
         sfxSource = NewSource(false);
         musicSource = NewSource(true);
         rainSource = NewSource(true);
+        campfireSource = NewSource(true);
+        campfireSource.clip = MakeCampfireClip();
+        campfireSource.volume = 0f;
 
         for (int i = 0; i < 12; i++) gunVoices.Add(NewSource(false));
         for (int i = 0; i < 12; i++) generalVoices.Add(NewSource(false));
@@ -69,7 +79,7 @@ public sealed class ZombitAudio : MonoBehaviour
 
         // Bancos de variacoes (carregados uma vez).
         foreach (var n in new[] { "gun_rifle", "gun_dmr", "gun_lmg", "gun_smg", "gun_sil", "hit_flesh", "hit_crit",
-                                  "miss_whiz", "zombie_death", "boss_death", "explosion", "shockwave", "levelup",
+                                  "miss_whiz", "zombie_death", "boss_death", "explosion", "levelup",
                                   "ui_click", "thunder" })
             LoadBank(n);
 
@@ -128,6 +138,15 @@ public sealed class ZombitAudio : MonoBehaviour
     {
         if (musicSource != null) musicSource.volume = Mathf.Clamp01(MusicVolume);
 
+        // O som suave das chamas fica ativo somente no acampamento principal.
+        if (campfireSource != null && campfireSource.clip != null)
+        {
+            float target = campfireEnabled ? Mathf.Clamp01(SfxVolume * 0.24f) : 0f;
+            campfireSource.volume = Mathf.MoveTowards(campfireSource.volume, target, Time.unscaledDeltaTime * 0.30f);
+            if (target > 0.002f && !campfireSource.isPlaying) campfireSource.Play();
+            else if (target <= 0.002f && campfireSource.volume <= 0.002f && campfireSource.isPlaying) campfireSource.Pause();
+        }
+
         // Chuva: o volume segue a intensidade do clima suavemente.
         if (rainSource != null && rainSource.clip != null)
         {
@@ -172,6 +191,11 @@ public sealed class ZombitAudio : MonoBehaviour
 
     static ZombitAudio GetOrCreateInstance()
     {
+#if UNITY_EDITOR
+        // Chamadas de áudio durante a geração de prefabs/layouts são intencionalmente
+        // ignoradas. O Editor não deve criar AudioSources nem chamar DontDestroyOnLoad.
+        if (!Application.isPlaying) return null;
+#endif
         if (instance != null) return instance;
         instance = FindAnyObjectByType<ZombitAudio>();
         if (instance != null) return instance;
@@ -239,13 +263,6 @@ public sealed class ZombitAudio : MonoBehaviour
         a.PlayOn(a.priorityVoices, a.Pick("explosion", a.fallbackExplosion), ExplosionGain, 0.96f, 1.04f);
     }
 
-    public static void PlayShockwave(Vector3 pos)
-    {
-        var a = GetOrCreateInstance();
-        if (a == null) return;
-        a.PlayOn(a.priorityVoices, a.Pick("shockwave", a.fallbackExplosion), ShockGain, 0.96f, 1.04f);
-    }
-
     public static void PlayLevelUp()
     {
         var a = GetOrCreateInstance();
@@ -266,6 +283,27 @@ public sealed class ZombitAudio : MonoBehaviour
         var a = GetOrCreateInstance();
         if (a == null) return;
         a.PlayOn(a.generalVoices, a.Pick("ui_click", a.fallbackUi), UiGain, 0.98f, 1.03f);
+    }
+
+    /// <summary>Ativa apenas o som contínuo e suave das chamas no acampamento principal.</summary>
+    public static void SetCampfireEnabled(bool enabled)
+    {
+        var a = GetOrCreateInstance();
+        if (a != null)
+        {
+            a.campfireEnabled = enabled;
+            // Ao voltar ao menu, não deixar chuva ou clima ambiental competir com a música e a fogueira.
+            if (enabled)
+            {
+                a.rainTarget = 0f;
+                a.rainCurrent = 0f;
+                if (a.rainSource != null)
+                {
+                    a.rainSource.volume = 0f;
+                    if (a.rainSource.isPlaying) a.rainSource.Pause();
+                }
+            }
+        }
     }
 
     /// <summary>Intensidade da chuva (0 = nenhuma, 1 = forte). Quem controla o clima chama a cada quadro.</summary>
@@ -341,6 +379,37 @@ public sealed class ZombitAudio : MonoBehaviour
             data[i] = Mathf.Clamp((tone * (1f - noiseMix) + noise * noiseMix) * amplitude * env, -1f, 1f);
         }
         var clip = AudioClip.Create("Zombit_" + name + "_Fallback", count, 1, rate, false);
+        clip.SetData(data, 0);
+        return clip;
+    }
+
+    static AudioClip MakeCampfireClip()
+    {
+        // Camada contínua de chama/vento quente. Sem estalos, pops ou sons de madeira quebrando.
+        // O loop é sintetizado localmente e tem transição suave para não produzir cliques na repetição.
+        const int rate = 22050;
+        const int seconds = 6;
+        int count = rate * seconds;
+        var data = new float[count];
+        var rng = new System.Random(48127);
+        float low = 0f, mid = 0f, upper = 0f;
+        for (int i = 0; i < count; i++)
+        {
+            float white = (float)(rng.NextDouble() * 2.0 - 1.0);
+            low = Mathf.Lerp(low, white, 0.0025f);
+            mid = Mathf.Lerp(mid, white, 0.018f);
+            upper = Mathf.Lerp(upper, white, 0.055f);
+            float t = i / (float)rate;
+            float swell = 0.78f
+                + 0.11f * Mathf.Sin(t * 1.35f + 0.2f)
+                + 0.07f * Mathf.Sin(t * 2.05f + 1.1f)
+                + 0.04f * Mathf.Sin(t * 0.53f);
+            // Quase todo o conteúdo fica nas frequências baixas/médias; evita transientes que lembram madeira estalando.
+            float flame = low * 0.42f + (mid - low) * 0.33f + (upper - mid) * 0.035f;
+            float edge = Mathf.Min(1f, Mathf.Min(i / (float)(rate * 0.06f), (count - 1 - i) / (float)(rate * 0.06f)));
+            data[i] = Mathf.Clamp(flame * swell * 0.34f * edge, -0.35f, 0.35f);
+        }
+        var clip = AudioClip.Create("Zombit_Campfire_Flame", count, 1, rate, false);
         clip.SetData(data, 0);
         return clip;
     }

@@ -9,7 +9,8 @@ using UnityEngine.UI;
 public static class TestSceneBuilder
 {
     const string SpriteDir = "Assets/_Project/Sprites";
-    const string PrefabDir = "Assets/_Project/Prefabs";
+    const string CombatPrefabDir = "Assets/_Project/Prefabs/Combat";
+    const string UiPrefabDir = "Assets/_Project/Prefabs/UI";
     static readonly Vector2 TL = new Vector2(0, 1), TR = new Vector2(1, 1), BL = new Vector2(0, 0), BR = new Vector2(1, 0), C = new Vector2(0.5f, 0.5f);
 
     [MenuItem("Zombit/Build Test Scene")]
@@ -18,6 +19,8 @@ public static class TestSceneBuilder
         EnsureFolder("Assets", "_Project");
         EnsureFolder("Assets/_Project", "Sprites");
         EnsureFolder("Assets/_Project", "Prefabs");
+        EnsureFolder("Assets/_Project/Prefabs", "Combat");
+        EnsureFolder("Assets/_Project/Prefabs", "UI");
 
         if (AssetDatabase.FindAssets("t:WeaponData").Length == 0) SampleDataCreator.Create();
 
@@ -41,7 +44,7 @@ public static class TestSceneBuilder
         bsr.sprite = sq; bsr.color = Color.yellow; bsr.sortingOrder = 5;
         bullet.transform.localScale = new Vector3(0.3f, 0.12f, 1f);
         bullet.AddComponent<Projectile>();
-        var bulletPrefab = PrefabUtility.SaveAsPrefabAsset(bullet, PrefabDir + "/Bullet.prefab");
+        var bulletPrefab = PrefabUtility.SaveAsPrefabAsset(bullet, CombatPrefabDir + "/Bullet.prefab");
         Object.DestroyImmediate(bullet);
 
         var z = new GameObject("Zombie");
@@ -51,7 +54,7 @@ public static class TestSceneBuilder
         z.AddComponent<Health>();
         var en = z.AddComponent<Enemy>();
         en.data = enemyData;
-        var zombiePrefab = PrefabUtility.SaveAsPrefabAsset(z, PrefabDir + "/Zombie.prefab");
+        var zombiePrefab = PrefabUtility.SaveAsPrefabAsset(z, CombatPrefabDir + "/Zombie.prefab");
         Object.DestroyImmediate(z);
 
         weapon.projectilePrefab = bulletPrefab;
@@ -103,9 +106,7 @@ public static class TestSceneBuilder
         var canvas = cgo.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         var scaler = cgo.AddComponent<CanvasScaler>();
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1920, 1080);
-        scaler.matchWidthOrHeight = 0.5f;
+        UIResolution.Apply(scaler);
         cgo.AddComponent<GraphicRaycaster>();
         var ct = cgo.transform;
 
@@ -132,7 +133,7 @@ public static class TestSceneBuilder
         hud.victoryPanel = Txt("Victory", ct, "MISSAO CONCLUIDA", 90, C, Vector2.zero, new Vector2(1100, 140), TextAlignmentOptions.Center).gameObject;
 
         var slotGo = MakeSlot("Slot", null, sq);
-        var slotPrefabGo = PrefabUtility.SaveAsPrefabAsset(slotGo.gameObject, PrefabDir + "/Slot.prefab");
+        var slotPrefabGo = PrefabUtility.SaveAsPrefabAsset(slotGo.gameObject, UiPrefabDir + "/Slot.prefab");
         Object.DestroyImmediate(slotGo.gameObject);
         var slotPrefab = slotPrefabGo.GetComponent<SlotUI>();
 

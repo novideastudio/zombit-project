@@ -81,6 +81,7 @@ public class Inventory : MonoBehaviour
     /// <summary>Equipa em qualquer sobrevivente do esquadrao (a mochila e compartilhada).</summary>
     public void Equip(ItemInstance item, PlayerStats target)
     {
+        if (!TimedCommerce.CanEquip(item, target != null ? target.Level : 0)) return; // DAILY_COMMERCE_RUN_LEVEL_V1
         if (target == null || !items.Remove(item)) return;
         var old = target.Equip(item);
         if (old != null) items.Add(old);
@@ -99,6 +100,9 @@ public class Inventory : MonoBehaviour
 
     public void Sell(ItemInstance item)
     {
+        // Moedas da campanha nao devem ser geradas ou consumidas em modos especiais.
+        // A verificacao central tambem protege chamadas feitas por paineis legados.
+        if (!GameSession.IsCampaign) return;
         if (!items.Remove(item)) return;
         if (loot != null) loot.gold += item.sellValue;
         Touch();

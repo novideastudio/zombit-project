@@ -14,6 +14,10 @@ public partial class MainMenuController
     Sprite PcTitleSprite(string name)
     {
         if(pcTitleSprites.TryGetValue(name,out var sp) && sp!=null)return sp;
+        // Preferir o Sprite importado do proprio PNG: evita Sprite.Create transitorio
+        // e garante que o UIBaker grave uma referencia persistente no prefab.
+        sp=Resources.Load<Sprite>(PcTitleArt+name);
+        if(sp!=null){pcTitleSprites[name]=sp;return sp;}
         var texture=Resources.Load<Texture2D>(PcTitleArt+name);
         if(texture==null)throw new InvalidOperationException("Arte do menu inicial ausente: "+PcTitleArt+name);
         sp=Sprite.Create(texture,new Rect(0,0,texture.width,texture.height),new Vector2(0.5f,0.5f),100f);

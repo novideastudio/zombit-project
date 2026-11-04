@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SurvivorAsset
   id: medic
   order: 2
-  displayName: Medic
+  displayName: Médico
   role: "Sustenta\xE7\xE3o"
   description: "Mant\xE9m a equipe viva. Resistente e sempre se curando. A MP5-SD dispara muito r\xE1pido, com dano baixo por tiro."
   utilityName: Primeiros socorros

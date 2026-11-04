@@ -5,6 +5,7 @@ using UnityEngine;
 [Serializable]
 public class ItemInstance
 {
+    public int requiredLevel = 0; // DAILY_COMMERCE_LEVEL_V1
     public string regionUniqueId = ""; // ZOMBIT_REGIONAL_ITEM_V1
     public string uid;
     public string name;

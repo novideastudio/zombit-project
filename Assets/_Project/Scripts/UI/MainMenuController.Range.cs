@@ -48,6 +48,7 @@ public partial class MainMenuController
         };
         // Starts with the current principal; add others inside the range.
         // Does not change the campaign squad stored in SaveData.
+        GameSession.Mode = GameMode.Training;
         GameSession.Survivor = survivor;
         GameSession.Partner = null;
         GameSession.Third = null;

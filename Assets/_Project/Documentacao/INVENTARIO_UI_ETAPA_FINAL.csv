@@ -1,0 +1,29 @@
+﻿Categoria,Nome,Caminho,Estado no ZIP,Como concluir
+Tela direta,Screen_login,Assets/_Project/Resources/UI/Screens/Screen_login.prefab,Presente,Abrir tela e testar runtime
+Tela direta,Screen_nickname,Assets/_Project/Resources/UI/Screens/Screen_nickname.prefab,Presente,Abrir tela e testar runtime
+Tela direta,Screen_options,Assets/_Project/Resources/UI/Screens/Screen_options.prefab,Presente,Abrir tela e testar runtime
+Tela direta,Screen_credits,Assets/_Project/Resources/UI/Screens/Screen_credits.prefab,Presente,Abrir tela e testar runtime
+Tela direta,Screen_slots,Assets/_Project/Resources/UI/Screens/Screen_slots.prefab,Presente,Abrir tela e testar runtime
+Layout dinâmico,Screen_main,Assets/_Project/Resources/UI/Screens/Screen_main.prefab,Presente,Testar aplicação visual
+Layout dinâmico,Screen_select,Assets/_Project/Resources/UI/Screens/Screen_select.prefab,Presente,Testar aplicação visual
+Layout dinâmico,Screen_home,Assets/_Project/Resources/UI/Screens/Screen_home.prefab,Gerar por bake,Assistente seguro gera automaticamente
+Layout dinâmico,Screen_map,Assets/_Project/Resources/UI/Screens/Screen_map.prefab,Gerar por bake,Assistente seguro gera automaticamente
+Layout dinâmico,Screen_mapInventory,Assets/_Project/Resources/UI/Screens/Screen_mapInventory.prefab,Presente,Testar aplicação visual
+Layout dinâmico,Screen_mapSkills,Assets/_Project/Resources/UI/Screens/Screen_mapSkills.prefab,Presente,Testar aplicação visual
+Layout dinâmico,Screen_shop,Assets/_Project/Resources/UI/Screens/Screen_shop.prefab,Presente,Testar aplicação visual
+Layout dinâmico,Screen_gameModes,Assets/_Project/Resources/UI/Screens/Screen_gameModes.prefab,Gerar por bake,Assistente seguro gera automaticamente
+Layout dinâmico,Screen_lastStandSetup,Assets/_Project/Resources/UI/Screens/Screen_lastStandSetup.prefab,Gerar por bake,Assistente seguro gera automaticamente
+Layout dinâmico,Screen_bossRushSetup,Assets/_Project/Resources/UI/Screens/Screen_bossRushSetup.prefab,Gerar por bake,Assistente seguro gera automaticamente
+Layout dinâmico,Screen_refugeDefenseSetup,Assets/_Project/Resources/UI/Screens/Screen_refugeDefenseSetup.prefab,Gerar por bake,Assistente seguro gera automaticamente
+Layout dinâmico,Screen_combatHud,Assets/_Project/Resources/UI/Screens/Screen_combatHud.prefab,Capturar em Play Mode,Abrir modo e usar Capturar interfaces abertas
+Layout dinâmico,Screen_trainingRange,Assets/_Project/Resources/UI/Screens/Screen_trainingRange.prefab,Capturar em Play Mode,Abrir modo e usar Capturar interfaces abertas
+Layout dinâmico,Screen_refugeDefenseHud,Assets/_Project/Resources/UI/Screens/Screen_refugeDefenseHud.prefab,Capturar em Play Mode,Abrir modo e usar Capturar interfaces abertas
+Layout dinâmico,Screen_lastStandHud,Assets/_Project/Resources/UI/Screens/Screen_lastStandHud.prefab,Capturar em Play Mode,Abrir modo e usar Capturar interfaces abertas
+Layout dinâmico,Screen_bossRushHud,Assets/_Project/Resources/UI/Screens/Screen_bossRushHud.prefab,Capturar em Play Mode,Abrir modo e usar Capturar interfaces abertas
+Componente,Card_Survivor,Assets/_Project/Resources/UI/Components/Card_Survivor.prefab,Presente,Editar e reutilizar
+Componente,Cell_Equip,Assets/_Project/Resources/UI/Components/Cell_Equip.prefab,Presente,Editar e reutilizar
+Componente,Node_Location,Assets/_Project/Resources/UI/Components/Node_Location.prefab,Presente,Editar e reutilizar
+Componente,Row_slot,Assets/_Project/Resources/UI/Components/Row_slot.prefab,Presente,Editar e reutilizar
+Componente,Tile_Hub,Assets/_Project/Resources/UI/Components/Tile_Hub.prefab,Presente,Editar e reutilizar
+Overlay,Overlay_confirm,Assets/_Project/Resources/UI/Overlays/Overlay_confirm.prefab,Presente,Editar e testar
+Overlay,Overlay_pause,Assets/_Project/Resources/UI/Overlays/Overlay_pause.prefab,Presente,Editar e testar

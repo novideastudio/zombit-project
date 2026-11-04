@@ -20,6 +20,7 @@ public partial class MainMenuController
         sharedInventoryView.Finish(invCategory,invSurvivorId,scroll);
         BuildRegionalInventoryEntry(); // REGIONAL_VISUAL_INVENTORY_V2
         Show("mapInventory");sharedInventoryView.Fit.Apply();
+        CommerceUiPolish.ShortenRefineButtons(screen); // DAILY_COMMERCE_REFINE_CAPTION_V1
         ApplyInventoryReferenceLayout(); // INVENTORY_REFERENCE_LAYOUT_V1
     }
     void BuildSharedMenuEquipment(SaveData save,string selectedUid)

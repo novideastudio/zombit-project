@@ -8,7 +8,7 @@ using UnityEngine.UI;
 // Os prefabs sao gerados por ZomBit > UI > 1 - Gerar prefabs das telas (Editor/UIBaker.cs).
 public partial class MainMenuController
 {
-    const string EditorUiResourcesPath = "UI/Screens/Screen_";
+    const string EditorUiResourcesPath = UIResourcePaths.ScreenPrefix;
 
     // true somente enquanto o UIBaker gera os prefabs (nao anexa efeitos de runtime, nao le prefabs).
     bool editorUiBaking;
@@ -39,6 +39,8 @@ public partial class MainMenuController
         NormalizePrefabScreenRoot(rt);
         screens[key] = rt;
         prefabScreens.Add(key);
+        if (UITheme.Current.logLayoutApplyDiagnostics)
+            Debug.Log("[ZomBit UI] Screen_" + key + " carregado como prefab completo (" + rt.GetComponentsInChildren<RectTransform>(true).Length + " RectTransforms).");
         return rt;
     }
 
@@ -71,11 +73,11 @@ public partial class MainMenuController
     // ---------- modelos (prefabs de peca repetida) ----------
     static readonly HashSet<string> warnedTemplates = new HashSet<string>();
 
-    /// <summary>Prefab-modelo em Resources/UI/Screens. Retorna null (= usar o codigo antigo) se desligado, em bake ou ausente.</summary>
+    /// <summary>Prefab-modelo em Resources/UI/Components. Retorna null (= usar o codigo antigo) se desligado, em bake ou ausente.</summary>
     GameObject EditorUiTemplate(string prefabName)
     {
         if (editorUiBaking || !UITheme.Current.useEditorUI) return null;
-        var prefab = Resources.Load<GameObject>(EditorUiBinding.ResourcesFolder + prefabName);
+        var prefab = Resources.Load<GameObject>(EditorUiBinding.ComponentsFolder + prefabName);
         if (prefab == null && warnedTemplates.Add(prefabName))
             Debug.LogWarning("[ZomBit UI] Prefab '" + prefabName + "' nao encontrado. Usando a UI em codigo. " +
                              "Rode ZomBit > UI > 1b - Gerar so os prefabs que faltam.");
@@ -355,7 +357,7 @@ public partial class MainMenuController
     // Instancia o prefab Card_Survivor e preenche com os dados da classe (cores, textos, arte).
     bool FillSurvivorCardFromPrefab(RectTransform cards, SurvivorDef d)
     {
-        var prefab = Resources.Load<GameObject>(EditorUiBinding.ResourcesFolder + "Card_Survivor");
+        var prefab = Resources.Load<GameObject>(EditorUiBinding.ComponentsFolder + "Card_Survivor");
         if (prefab == null)
         {
             Debug.LogWarning("[ZomBit UI] Prefab 'Card_Survivor' nao encontrado. Usando a carta em codigo.");
@@ -426,7 +428,7 @@ public partial class MainMenuController
     void BindSlotsFromPrefab(RectTransform s)
     {
         var rows = EditorUiFind<RectTransform>(s, "Rows");
-        var rowPrefab = Resources.Load<GameObject>(EditorUiBinding.ResourcesFolder + "Row_slot");
+        var rowPrefab = Resources.Load<GameObject>(EditorUiBinding.ComponentsFolder + "Row_slot");
         EditorUiClearChildren(rows);
         if (rows != null)
         {
@@ -480,9 +482,7 @@ public partial class MainMenuController
         var canvas = host.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         var scaler = host.AddComponent<CanvasScaler>();
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1920, 1080);
-        scaler.matchWidthOrHeight = 0.5f;
+        UIResolution.Apply(scaler);
 
         var oldSave = GameSession.Save;
         var oldSurvivor = GameSession.Survivor;
@@ -531,15 +531,25 @@ public partial class MainMenuController
             ctrl.editorUiBaking = true;
             ctrl.root = (RectTransform)host.transform;
 
-            // The same builders used in the game create these layouts. Only the layout snapshots are saved;
-            // callbacks and save-dependent values are still populated by the original runtime code.
+            // Use the exact runtime builders to produce the canonical editable Screens.
+            // This covers the home hub, campaign, inventory, skills, shop and all mode setup screens.
+            // Dynamic values/callbacks remain owned by runtime controllers; these are visual snapshots.
+            ctrl.ShowHome();
             ctrl.ShowMap();
             ctrl.ShowMapInventory(null, true);
             ctrl.ShowMapSkills(null);
             ctrl.ShowShop();
+            ctrl.ShowGameModes();
+            ctrl.ShowLastStandSetup();
+            ctrl.ShowBossRushSetup();
+            ctrl.ShowRefugeDefenseSetup();
 
             var result = new List<KeyValuePair<string, GameObject>>();
-            foreach (string key in new[] { "map", "mapInventory", "mapSkills", "shop" })
+            foreach (string key in new[]
+            {
+                "home", "map", "mapInventory", "mapSkills", "shop", "gameModes",
+                "lastStandSetup", "bossRushSetup", "refugeDefenseSetup"
+            })
                 if (ctrl.screens.TryGetValue(key, out var rt) && rt != null)
                     result.Add(new KeyValuePair<string, GameObject>(key, rt.gameObject));
             return result;
@@ -566,9 +576,7 @@ public partial class MainMenuController
         var canvas = host.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         var scaler = host.AddComponent<CanvasScaler>();
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1920, 1080);
-        scaler.matchWidthOrHeight = 0.5f;
+        UIResolution.Apply(scaler);
 
         var ctrl = host.AddComponent<MainMenuController>();
         ctrl.editorUiBaking = true;

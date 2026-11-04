@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SurvivorAsset
   id: explorer
   order: 4
-  displayName: Explorer
+  displayName: Explorador
   role: Coleta e recompensa
   description: "Explora \xE1reas, encontra recursos e itens raros. A MAC-10 \xE9 a arma mais r\xE1pida e a mais fraca, mas ele rende muito mais."
   utilityName: Saqueador

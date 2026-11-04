@@ -7,8 +7,8 @@ using UnityEngine;
 ///  - O PRINCIPAL fica na frente e toma o dano primeiro; o APOIO fica um pouco atras.
 ///  - Os zumbis sempre perseguem o sobrevivente VIVO mais a frente (FrontTarget).
 ///  - XP de cada abate e dividida (50/50 na dupla, 40% para cada no trio); ouro, abates e mochila sao compartilhados.
-///  - Cada um usa a propria arma e a propria habilidade (granada, cura, torreta...).
-///  - Se um cair, o outro continua (e herda a onda de choque/feedback de tela). A missao so
+///  - Cada um usa a propria arma e suas habilidades de classe (granada, cura, torreta...).
+///  - Se um cair, o outro continua (e herda o feedback de tela). A missao so
 ///    e perdida quando TODOS caem. No trio a ordem de dano e: frente -> meio -> fundo.
 /// </summary>
 public static class HeroSquad
@@ -153,7 +153,7 @@ public static class HeroSquad
             UnityEngine.Object.Destroy(deadFx);
             if (next.stats.GetComponent<HeroDamageFeedback>() == null) next.stats.gameObject.AddComponent<HeroDamageFeedback>();
         }
-        // Onda de choque [ESPACO] e foco por clique tambem.
+        // O foco de disparo por clique passa para o próximo sobrevivente.
         var deadSkills = dead.stats.GetComponent<ActiveSkills>();
         if (deadSkills != null)
         {

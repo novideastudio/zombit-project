@@ -10,14 +10,35 @@ using UnityEngine.UI;
 /// <summary>
 /// Converte a UI montada por codigo em PREFABS editaveis, com o visual identico.
 /// Como funciona: roda os mesmos builders do jogo em modo Editor, troca os sprites gerados por
-/// codigo por arquivos .png reais (com 9-slice) e salva cada tela como prefab em Resources/UI/Screens.
+/// codigo por arquivos .png reais (com 9-slice) e salva telas, componentes e overlays em suas pastas oficiais de Resources/UI.
 /// </summary>
 public static class UIBaker
 {
     const string SpritesDir = "Assets/_Project/Art/UI/Generated";
     const string ScreensDir = "Assets/_Project/Resources/UI/Screens";
+    const string ComponentsDir = "Assets/_Project/Resources/UI/Components";
+    const string OverlaysDir = "Assets/_Project/Resources/UI/Overlays";
     const string ThemePath = "Assets/_Project/Resources/Config/UITheme.asset";
     const string ToggleMenu = "ZomBit/UI/Usar UI do Editor (alternar)";
+
+    /// <summary>
+    /// Pipeline seguro usado pelo assistente de finalizacao. Nunca sobrescreve prefabs existentes:
+    /// prepara metadados, cria apenas assets ausentes, repara previews e executa a auditoria.
+    /// </summary>
+    public static void RunSafePreparationFromWizard()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+        {
+            EditorUtility.DisplayDialog("ZomBit UI", "Saia do Play Mode antes de preparar as interfaces.", "OK");
+            return;
+        }
+
+        PrepareMigratedPrefabs();
+        BakeInternal(true);
+        BakeLayoutOverridesInternal(true);
+        RepairExistingLayoutPreviews();
+        AuditUiPrefabs();
+    }
 
     [MenuItem("ZomBit/UI/1 - Gerar prefabs das telas")]
     public static void BakeScreens() => BakeInternal(false);
@@ -42,6 +63,8 @@ public static class UIBaker
 
         Directory.CreateDirectory(SpritesDir);
         Directory.CreateDirectory(ScreensDir);
+        Directory.CreateDirectory(ComponentsDir);
+        Directory.CreateDirectory(OverlaysDir);
 
         var temps = new List<GameObject>();
         int saved = 0;
@@ -63,7 +86,7 @@ public static class UIBaker
             foreach (var kv in screens)
             {
                 var go = kv.Value;
-                string existingPath = IsPrefabOnlyKey(kv.Key) ? ScreensDir + "/" + kv.Key + ".prefab" : ScreensDir + "/Screen_" + kv.Key + ".prefab";
+                string existingPath = PrefabAssetPath(kv.Key);
                 if (onlyMissing && File.Exists(existingPath))
                 {
                     // Ja existe (pode ter edicoes suas): mantem como esta, mas o modelo vale para as previas das outras telas.
@@ -83,7 +106,7 @@ public static class UIBaker
                 if (kv.Key == "slots" && saved_assets.TryGetValue("Row_slot", out var rowAsset))
                     AddPreviewInstances(go, "Rows", rowAsset, SaveSystem.SlotCount);
 
-                string path = IsPrefabOnlyKey(kv.Key) ? ScreensDir + "/" + kv.Key + ".prefab" : ScreensDir + "/Screen_" + kv.Key + ".prefab";
+                string path = PrefabAssetPath(kv.Key);
                 var savedAsset = PrefabUtility.SaveAsPrefabAsset(go, path, out bool ok);
                 if (ok) saved_assets[kv.Key] = savedAsset;
                 if (ok) { saved++; Debug.Log("[ZomBit UI] Prefab gerado: " + path); }
@@ -103,8 +126,15 @@ public static class UIBaker
             "\n\nAgora use: ZomBit > UI > Usar UI do Editor (alternar) e de Play.", "OK");
     }
 
-    static bool IsPrefabOnlyKey(string key) => key.StartsWith("Card_") || key.StartsWith("Row_") || key.StartsWith("Overlay_") ||
-                                                    key.StartsWith("Node_") || key.StartsWith("Tile_") || key.StartsWith("Cell_");
+    static bool IsOverlayKey(string key) => key.StartsWith("Overlay_", System.StringComparison.OrdinalIgnoreCase);
+    static bool IsComponentKey(string key) => key.StartsWith("Card_") || key.StartsWith("Row_") ||
+        key.StartsWith("Node_") || key.StartsWith("Tile_") || key.StartsWith("Cell_");
+    static string PrefabAssetPath(string key)
+    {
+        if (IsOverlayKey(key)) return OverlaysDir + "/" + key + ".prefab";
+        if (IsComponentKey(key)) return ComponentsDir + "/" + key + ".prefab";
+        return ScreensDir + "/Screen_" + key + ".prefab";
+    }
     static int TemplateOrder(string key) => (key == "Card_Survivor" || key == "Row_slot") ? 0 : 1;
 
     // Instancias aninhadas do modelo dentro do container da tela (so para voce VER o layout no Editor).
@@ -116,11 +146,164 @@ public static class UIBaker
             PrefabUtility.InstantiatePrefab(templateAsset, container);
     }
 
-    [MenuItem("ZomBit/UI/3 - Gerar layouts editaveis (Mapa/Inventario/Habilidades/Loja)")]
+    [MenuItem("ZomBit/UI/3 - Gerar telas editaveis ausentes (Home/Mapa/Modos/Preparacao)")]
     static void BakeLayoutOverridesMissing() => BakeLayoutOverridesInternal(true);
 
-    [MenuItem("ZomBit/UI/3b - Regerar layouts editaveis (sobrescrever)")]
+    [MenuItem("ZomBit/UI/3b - Regerar telas editaveis (sobrescrever)")]
     static void BakeLayoutOverridesReplace() => BakeLayoutOverridesInternal(false);
+
+    [MenuItem("ZomBit/UI/6 - Capturar interfaces abertas (preservar layouts existentes)")]
+    public static void CaptureOpenInterfacesSafe() => CaptureOpenInterfaces(false);
+
+    [MenuItem("ZomBit/UI/6b - Atualizar interfaces capturadas (sobrescrever layouts)")]
+    public static void CaptureOpenInterfacesReplace() => CaptureOpenInterfaces(true);
+
+    /// <summary>
+    /// Captura as telas realmente abertas durante o Play Mode e cria Screen_*.prefab editaveis.
+    /// Inclui telas do menu visitadas, HUD de combate, treinamento e HUDs dos modos especiais quando presentes.
+    /// A captura segura nunca sobrescreve um prefab existente.
+    /// </summary>
+    static void CaptureOpenInterfaces(bool overwrite)
+    {
+        if (!EditorApplication.isPlaying)
+        {
+            EditorUtility.DisplayDialog("ZomBit UI",
+                "Entre em Play Mode e abra as telas que deseja editar. Depois execute esta opcao.", "OK");
+            return;
+        }
+
+        var sources = new List<KeyValuePair<string, GameObject>>();
+        var controller = Object.FindFirstObjectByType<MainMenuController>();
+        if (controller != null)
+        {
+            var field = typeof(MainMenuController).GetField("screens", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var screens = field != null ? field.GetValue(controller) as Dictionary<string, RectTransform> : null;
+            if (screens != null)
+                foreach (var pair in screens)
+                    if (pair.Value != null) sources.Add(new KeyValuePair<string, GameObject>(pair.Key, pair.Value.gameObject));
+        }
+
+        var hud = Object.FindFirstObjectByType<HudController>();
+        if (hud != null && hud.gameObject != null)
+            sources.Add(new KeyValuePair<string, GameObject>("combatHud", hud.gameObject));
+
+        var range = ShootingRange.Instance;
+        if (range != null && range.LayoutCanvas != null)
+            sources.Add(new KeyValuePair<string, GameObject>("trainingRange", range.LayoutCanvas.gameObject));
+
+        var refugeHud = Object.FindFirstObjectByType<RefugeDefenseController>();
+        if (refugeHud != null && refugeHud.LayoutCanvas != null)
+            sources.Add(new KeyValuePair<string, GameObject>("refugeDefenseHud", refugeHud.LayoutCanvas.gameObject));
+
+        var lastStandHud = Object.FindFirstObjectByType<LastStandController>();
+        if (lastStandHud != null && lastStandHud.LayoutCanvas != null)
+            sources.Add(new KeyValuePair<string, GameObject>("lastStandHud", lastStandHud.LayoutCanvas.gameObject));
+
+        var bossRushHud = Object.FindFirstObjectByType<BossRushController>();
+        if (bossRushHud != null && bossRushHud.LayoutCanvas != null)
+            sources.Add(new KeyValuePair<string, GameObject>("bossRushHud", bossRushHud.LayoutCanvas.gameObject));
+
+        if (sources.Count == 0)
+        {
+            EditorUtility.DisplayDialog("ZomBit UI", "Nenhuma interface capturavel foi encontrada nesta cena.", "OK");
+            return;
+        }
+
+        if (overwrite && !EditorUtility.DisplayDialog("ZomBit UI",
+            "Layouts existentes serao sobrescritos. Prefabs editados manualmente podem perder alteracoes.\n\nDeseja continuar?",
+            "Sobrescrever", "Cancelar")) return;
+
+        Directory.CreateDirectory(ScreensDir);
+        int saved = 0, skipped = 0, failed = 0;
+        foreach (var source in sources)
+        {
+            string key = source.Key;
+            if (string.IsNullOrEmpty(key) || source.Value == null) continue;
+            string path = ScreensDir + "/Screen_" + key + ".prefab";
+            if (File.Exists(path) && !overwrite) { skipped++; continue; }
+
+            GameObject clone = null;
+            try
+            {
+                clone = Object.Instantiate(source.Value);
+                clone.name = "Screen_" + key;
+                RemapTransientSprites(clone);
+                ConfigureLayoutPreviewCanvas(clone);
+                ConfigureLayoutOverrideFlags(clone.transform, key, true);
+                WarnTransientReferences(clone, "Screen_" + key);
+                var prefab = PrefabUtility.SaveAsPrefabAsset(clone, path, out bool ok);
+                if (ok && prefab != null)
+                {
+                    saved++;
+                    Debug.Log("[ZomBit UI] Tela capturada: " + path);
+                }
+                else failed++;
+            }
+            catch (System.Exception e)
+            {
+                failed++;
+                Debug.LogError("[ZomBit UI] Falha ao capturar '" + key + "': " + e.Message);
+            }
+            finally
+            {
+                if (clone != null) Object.DestroyImmediate(clone);
+            }
+        }
+
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+        EditorUtility.DisplayDialog("ZomBit UI",
+            "Captura concluida.\nNovos/atualizados: " + saved + "\nPreservados: " + skipped + "\nFalhas: " + failed +
+            "\n\nEdite os arquivos Screen_*.prefab em Resources/UI/Screens. As telas passam a aplicar o layout automaticamente ao abrir.", "OK");
+    }
+
+    // Adiciona os metadados de aplicacao visual nos prefabs promovidos do sistema antigo.
+    // Executar uma vez apos a migracao; componentes ja configurados nunca sao sobrescritos.
+    [MenuItem("ZomBit/UI/0 - Preparar prefabs migrados (preservar edicoes)")]
+    static void PrepareMigratedPrefabs()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+        {
+            EditorUtility.DisplayDialog("ZomBit UI", "Saia do modo Play antes de preparar os prefabs.", "OK");
+            return;
+        }
+
+        Directory.CreateDirectory(ScreensDir);
+        int prepared = 0, skipped = 0, failed = 0;
+        string[] directScreens = { "login", "nickname", "options", "credits", "slots" };
+        foreach (string path in Directory.GetFiles(ScreensDir, "Screen_*.prefab", SearchOption.TopDirectoryOnly))
+        {
+            string file = Path.GetFileNameWithoutExtension(path);
+            string key = file.Substring("Screen_".Length);
+            if (directScreens.Contains(key, System.StringComparer.OrdinalIgnoreCase)) { skipped++; continue; }
+
+            GameObject contents = null;
+            try
+            {
+                contents = PrefabUtility.LoadPrefabContents(path);
+                if (contents == null) { failed++; continue; }
+                ConfigureLayoutOverrideFlags(contents.transform, key, true, true);
+                PrefabUtility.SaveAsPrefabAsset(contents, path, out bool ok);
+                if (ok) prepared++; else failed++;
+            }
+            catch (System.Exception e)
+            {
+                failed++;
+                Debug.LogError("[ZomBit UI] Falha ao preparar " + path + ": " + e.Message);
+            }
+            finally
+            {
+                if (contents != null) PrefabUtility.UnloadPrefabContents(contents);
+            }
+        }
+
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+        EditorUtility.DisplayDialog("ZomBit UI",
+            "Preparacao concluida. Prefabs atualizados com metadados ausentes: " + prepared +
+            "\nTelas completas ignoradas: " + skipped + "\nFalhas: " + failed +
+            "\n\nOs metadados existentes foram preservados. Agora as telas promovidas podem aplicar as alteracoes visuais no runtime.", "OK");
+    }
 
     // Corrige os previews sem reconstruir a hierarquia: layouts editaveis + telas completas.
     // O comando e seguro para executar mesmo se alguns assets ainda nao tiverem sido gerados.
@@ -133,13 +316,13 @@ public static class UIBaker
             return;
         }
 
-        string[] layoutKeys = { "map", "mapInventory", "mapSkills", "shop" };
+        string[] layoutKeys = { "main", "select", "home", "map", "mapInventory", "mapSkills", "shop", "gameModes", "lastStandSetup", "bossRushSetup", "refugeDefenseSetup", "combatHud", "trainingRange", "refugeDefenseHud", "lastStandHud", "bossRushHud" };
         string[] fullScreenPrefabs = FullScreenPrefabNames;
         int repairedLayouts = 0, repairedScreens = 0, missingLayouts = 0, missingScreens = 0, failed = 0;
 
         foreach (string key in layoutKeys)
         {
-            string path = ScreensDir + "/Layout_" + key + ".prefab";
+            string path = ScreensDir + "/Screen_" + key + ".prefab";
             if (!File.Exists(path)) { missingLayouts++; continue; }
             if (RepairPrefabPreviewCanvas(path)) repairedLayouts++; else failed++;
         }
@@ -153,15 +336,15 @@ public static class UIBaker
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
-        Debug.Log("[ZomBit UI] Preview audit/reparo concluido. Layouts corrigidos: " + repairedLayouts +
+        Debug.Log("[ZomBit UI] Preview audit/reparo concluido. Telas dinamicas corrigidas: " + repairedLayouts +
                   "; telas completas corrigidas: " + repairedScreens + "; layouts nao gerados: " + missingLayouts +
                   "; telas ausentes: " + missingScreens + "; falhas: " + failed +
                   ". Pecas reutilizaveis foram intencionalmente ignoradas.");
         EditorUtility.DisplayDialog("ZomBit UI",
             "Correcao de preview concluida, sem reconstruir os elementos nem apagar edicoes.\n\n" +
-            "Layouts corrigidos: " + repairedLayouts + "\n" +
+            "Telas dinamicas corrigidas: " + repairedLayouts + "\n" +
             "Telas completas corrigidas: " + repairedScreens + "\n" +
-            "Layouts ainda nao gerados: " + missingLayouts + "\n" +
+            "Telas ainda nao geradas: " + missingLayouts + "\n" +
             "Telas completas ausentes: " + missingScreens + "\n" +
             "Falhas: " + failed + "\n\n" +
             "Inclui Screen_main, Screen_select, login, nickname, options, credits e slots.\n" +
@@ -229,21 +412,21 @@ public static class UIBaker
         }
 
         int layoutOk = 0, layoutNeedsFix = 0, layoutNotGenerated = 0;
-        foreach (string key in new[] { "map", "mapInventory", "mapSkills", "shop" })
+        foreach (string key in new[] { "home", "map", "mapInventory", "mapSkills", "shop", "gameModes", "lastStandSetup", "bossRushSetup", "refugeDefenseSetup", "combatHud", "trainingRange", "refugeDefenseHud", "lastStandHud", "bossRushHud" })
         {
-            string path = ScreensDir + "/Layout_" + key + ".prefab";
-            if (!File.Exists(path)) { layoutNotGenerated++; report.Add("LAYOUT AINDA NAO GERADO: Layout_" + key); continue; }
+            string path = ScreensDir + "/Screen_" + key + ".prefab";
+            if (!File.Exists(path)) { layoutNotGenerated++; report.Add("TELA DINAMICA AINDA NAO GERADA: Screen_" + key); continue; }
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
             bool ok = prefab != null && prefab.GetComponent<Canvas>() != null && prefab.GetComponent<CanvasScaler>() != null && prefab.GetComponent<GraphicRaycaster>() != null;
-            if (ok) { layoutOk++; report.Add("OK: Layout_" + key); }
-            else { layoutNeedsFix++; report.Add("LAYOUT PRECISA REPARO: Layout_" + key); }
+            if (ok) { layoutOk++; report.Add("OK: Screen_" + key); }
+            else { layoutNeedsFix++; report.Add("TELA DINAMICA PRECISA REPARO: Screen_" + key); }
         }
 
         string fullReport = string.Join("\n", report);
         Debug.Log("[ZomBit UI] Auditoria de UI\n" + fullReport);
         EditorUtility.DisplayDialog("Auditoria de prefabs UI",
             "Telas completas: " + fullScreenOk + " OK, " + fullScreenNeedsFix + " precisam reparo, " + fullScreenMissing + " ausentes.\n" +
-            "Layouts editaveis: " + layoutOk + " OK, " + layoutNeedsFix + " precisam reparo, " + layoutNotGenerated + " ainda nao gerados.\n\n" +
+            "Telas editaveis dinamicas: " + layoutOk + " OK, " + layoutNeedsFix + " precisam reparo, " + layoutNotGenerated + " ainda nao gerados.\n\n" +
             "Detalhes completos foram enviados ao Console.\n\nElementos reutilizaveis nao precisam de Canvas/CanvasScaler proprio.", "OK");
     }
 
@@ -261,9 +444,7 @@ public static class UIBaker
 
         var scaler = root.GetComponent<CanvasScaler>();
         if (scaler == null) scaler = root.AddComponent<CanvasScaler>();
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1920f, 1080f);
-        scaler.matchWidthOrHeight = 0.5f;
+        UIResolution.Apply(scaler);
 
         if (root.GetComponent<GraphicRaycaster>() == null)
             root.AddComponent<GraphicRaycaster>();
@@ -278,9 +459,9 @@ public static class UIBaker
         }
 
         if (!onlyMissing && Directory.Exists(ScreensDir) &&
-            new[] { "map", "mapInventory", "mapSkills", "shop" }.Any(key => File.Exists(ScreensDir + "/Layout_" + key + ".prefab")) &&
+            new[] { "home", "map", "mapInventory", "mapSkills", "shop", "gameModes", "lastStandSetup", "bossRushSetup", "refugeDefenseSetup" }.Any(key => File.Exists(ScreensDir + "/Screen_" + key + ".prefab")) &&
             !EditorUtility.DisplayDialog("ZomBit UI",
-                "Ja existem layouts editaveis em\n" + ScreensDir + "\n\nRegerar vai SOBRESCREVER as edicoes feitas nesses quatro layouts.\nContinuar?",
+                "Ja existem layouts editaveis em\n" + ScreensDir + "\n\nRegerar vai SOBRESCREVER as edicoes feitas nas telas editaveis selecionadas.\nContinuar?",
                 "Sobrescrever", "Cancelar"))
             return;
 
@@ -292,7 +473,7 @@ public static class UIBaker
             var layouts = MainMenuController.EditorUiBakeLayoutOverrides(out host);
             foreach (var pair in layouts)
             {
-                string path = ScreensDir + "/Layout_" + pair.Key + ".prefab";
+                string path = ScreensDir + "/Screen_" + pair.Key + ".prefab";
                 if (onlyMissing && File.Exists(path)) { skipped++; continue; }
 
                 GameObject go = pair.Value;
@@ -301,12 +482,12 @@ public static class UIBaker
                 RemapTransientSprites(go);
                 ConfigureLayoutPreviewCanvas(go);
                 ConfigureLayoutOverrideFlags(go.transform, pair.Key);
-                WarnTransientReferences(go, "Layout_" + pair.Key);
+                WarnTransientReferences(go, "Screen_" + pair.Key);
                 var prefab = PrefabUtility.SaveAsPrefabAsset(go, path, out bool ok);
                 if (ok)
                 {
                     saved++;
-                    Debug.Log("[ZomBit UI] Layout editavel gerado: " + path);
+                    Debug.Log("[ZomBit UI] Tela editavel gerada: " + path);
                 }
                 else Debug.LogError("[ZomBit UI] Falha ao salvar layout: " + path);
             }
@@ -326,17 +507,22 @@ public static class UIBaker
 
         EditorUtility.DisplayDialog("ZomBit UI",
             saved + " layout(s) editavel(is) gerado(s)." + (onlyMissing ? "\n" + skipped + " layout(s) existente(s) preservado(s)." : "") +
-            "\n\nPasta: " + ScreensDir + "\n\nEdite Layout_map, Layout_mapInventory, Layout_mapSkills e Layout_shop no Inspector/Prefab Mode.\nAs edicoes de layout sao aplicadas ao abrir cada tela durante o jogo.", "OK");
+            "\n\nPasta: " + ScreensDir + "\n\nEdite os Screen_* canonicos no Editor Visual.\nAs edicoes de layout sao aplicadas ao abrir cada tela durante o jogo.", "OK");
     }
 
-    static void ConfigureLayoutOverrideFlags(Transform node, string key)
+    static void ConfigureLayoutOverrideFlags(Transform node, string key, bool isRoot = false, bool onlyMissing = false)
     {
         string path = BuildRelativePath(node);
         var flags = node.GetComponent<UIPrefabLayoutOverride>();
-        if (flags == null) flags = node.gameObject.AddComponent<UIPrefabLayoutOverride>();
+        bool added = flags == null;
+        if (added) flags = node.gameObject.AddComponent<UIPrefabLayoutOverride>();
 
-        bool screenRoot = node.parent != null && node.parent.name == "__ZombitLayoutBake";
+        if (!onlyMissing || added)
+        {
+        bool screenRoot = isRoot || (node.parent != null && node.parent.name == "__ZombitLayoutBake");
         bool dataPositioned = IsDataPositionedPath(path);
+        bool runtimeText = IsRuntimeBoundTextPath(path);
+        bool runtimeImage = IsRuntimeBoundImagePath(path);
         // The prefab is a visual template, not the authority for the full-screen root rectangle.
         flags.overrideAnchorsAndPosition = !screenRoot && !dataPositioned;
         flags.overrideSize = !screenRoot;
@@ -344,7 +530,7 @@ public static class UIBaker
         flags.overrideScaleAndRotation = !screenRoot;
 
         var text = node.GetComponent<TMP_Text>();
-        flags.overrideTextContent = text != null;
+        flags.overrideTextContent = text != null && !runtimeText;
         flags.overrideTextStyle = true;
         flags.overrideTextColor = text != null;
         if (text != null)
@@ -356,7 +542,7 @@ public static class UIBaker
         }
 
         var image = node.GetComponent<Image>();
-        flags.overrideImageSprite = image != null;
+        flags.overrideImageSprite = image != null && !runtimeImage;
         flags.overrideImageColor = image != null;
         if (image != null)
         {
@@ -370,8 +556,9 @@ public static class UIBaker
         flags.overrideButtonTransition = button != null;
         flags.overrideLayoutComponents = true;
         EditorUtility.SetDirty(flags);
+        }
 
-        for (int i = 0; i < node.childCount; i++) ConfigureLayoutOverrideFlags(node.GetChild(i), key);
+        for (int i = 0; i < node.childCount; i++) ConfigureLayoutOverrideFlags(node.GetChild(i), key, false, onlyMissing);
     }
 
     static string BuildRelativePath(Transform node)
@@ -402,7 +589,8 @@ public static class UIBaker
             "MapNicknameValue", "MapNicknameClass", "MapXpBar", "MapXpFill", "RegionTitle", "RegionCount", "RegionBar",
             "/DName", "/DDesc", "/DInfo", "DifficultyInfo", "InsuranceToggle", "PointsValue", "OfferPrice",
             "SlotInfo", "LockLevel", "/Num", "LocationName", "NicknameHelp", "MapItemDetailsPanel", 
-            "SurvivorSwitcher", "SkillBranch_", "/Skill_", "SelectedSkillPanel", "StatValue", "LevelChip", "PlayerIdentity"
+            "SurvivorSwitcher", "SkillBranch_", "/Skill_", "SelectedSkillPanel", "StatValue", "LevelChip", "PlayerIdentity",
+            "PcSelectionStage/Player", "PcSelectionStage/Note", "PcCard_", "ConfirmButton"
         };
         foreach (var token in tokens) if (PathContains(path, token)) return true;
         if (PathContains(path, "MapMarkerLayer/")) return true;
@@ -414,21 +602,12 @@ public static class UIBaker
         string[] tokens = {
             "MapMarkerLayer/", "SurvivorSwitcher/", "InventoryCategoryTabs/", "DifficultyRow/", "SelectedLocationPreview",
             "MapNicknameHitArea", "MapXpFill", "PointsDot", "SkillBranch_", "/Skill_", "SelectedSkillPanel",
-            "MapItemDetailsPanel", "LevelChip", "StatFill", "HealthFill", "XpFill", "AbilityFill", "BuyOfferButton"
+            "MapItemDetailsPanel", "LevelChip", "StatFill", "HealthFill", "XpFill", "AbilityFill", "BuyOfferButton",
+            "CampCharacter"
         };
         foreach (var token in tokens) if (PathContains(path, token)) return true;
         string leaf = path.Substring(path.LastIndexOf('/') + 1);
         return leaf == "Icon" || leaf == "Art" || leaf == "Portrait" || leaf == "Fill" || leaf == "SelectedPin";
-    }
-
-    static bool IsRuntimeBoundButtonPath(string path)
-    {
-        string[] tokens = {
-            "MapMarkerLayer/Node_", "Difficulty_", "SurvivorSwitcher/", "NavTab_", "InventoryCategoryTabs/",
-            "Item_", "EquipSlot_", "BuyOfferButton", "SkillBranch_", "/Skill_"
-        };
-        foreach (var token in tokens) if (PathContains(path, token)) return true;
-        return false;
     }
 
     static bool IsGeneratedBaseSprite(Sprite sprite)
@@ -476,6 +655,18 @@ public static class UIBaker
         {
             var sp = img.sprite;
             if (sp == null || EditorUtility.IsPersistent(sp)) continue;
+
+            // Sprite.Create(texture, ...) gera um Sprite transitorio mesmo quando a textura
+            // original ja e um asset. Nesse caso, recuperar o Sprite persistente do PNG original.
+            // Sem isso, o bake podia reutilizar UI_Generated_1.png antigo (64x64) no lugar
+            // do title_scene (1672x941), deixando o menu preto e os botoes com artes trocadas.
+            var persistentSprite = ResolvePersistentTextureSprite(sp);
+            if (persistentSprite != null)
+            {
+                img.sprite = persistentSprite;
+                continue;
+            }
+
             if (!cache.TryGetValue(sp, out var saved))
             {
                 string name;
@@ -489,6 +680,36 @@ public static class UIBaker
             }
             if (saved != null) img.sprite = saved;
         }
+    }
+
+
+
+    static Sprite ResolvePersistentTextureSprite(Sprite transient)
+    {
+        if (transient == null || transient.texture == null || !EditorUtility.IsPersistent(transient.texture))
+            return null;
+
+        string path = AssetDatabase.GetAssetPath(transient.texture);
+        if (string.IsNullOrEmpty(path)) return null;
+
+        var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+        if (importer != null && importer.textureType != TextureImporterType.Sprite)
+        {
+            importer.textureType = TextureImporterType.Sprite;
+            importer.spriteImportMode = SpriteImportMode.Single;
+            importer.mipmapEnabled = false;
+            importer.SaveAndReimport();
+        }
+
+        // Recarregar apos eventual reimportacao; o Sprite deve usar o GUID do PNG original.
+        var sprites = AssetDatabase.LoadAllAssetsAtPath(path).OfType<Sprite>();
+        var match = sprites.FirstOrDefault(candidate =>
+            candidate != null &&
+            Mathf.RoundToInt(candidate.rect.width) == Mathf.RoundToInt(transient.rect.width) &&
+            Mathf.RoundToInt(candidate.rect.height) == Mathf.RoundToInt(transient.rect.height));
+        if (match != null) return match;
+
+        return AssetDatabase.LoadAssetAtPath<Sprite>(path);
     }
 
     static Sprite SaveSprite(Sprite sp, string name)
