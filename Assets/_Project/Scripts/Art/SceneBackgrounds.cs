@@ -39,14 +39,14 @@ public static class SceneBackgrounds
     const string Dir = "Art/Backgrounds/";
 
     /// <summary>Cenario padrao (menu, locais sem mapeamento).</summary>
-    public const string DefaultId = "ruins";
+    public const string DefaultId = "suburb";
     public const string DefaultPath = Dir + "wave_" + DefaultId;
 
     // id do LOCAL (GameDatabase.Locations) -> id do CENARIO (arquivo wave_<id>.png)
     static readonly Dictionary<string, string> byLocation = new Dictionary<string, string>
     {
-        { "residencial", "ruins"    },   // ruas de casas abandonadas
-        { "suburbio",    "farm"     },   // casas e fazendas
+        { "suburbio",    "suburb"    },   // ruas de casas abandonadas
+        { "residencial", "residencial"    },   // ruas de casas abandonadas
         { "shopping",    "shopping" },   // dentro do shopping
         { "industrial",  "dock"     },   // porto, guindaste, containers
         { "hospital",    "hospital" },
@@ -82,7 +82,7 @@ public static class SceneBackgrounds
 
         Add(new SceneProfile
         {
-            id = "ruins", groundRow = 0.66f, sun = new Vector2(0.624f, 0.33f), sunSize = 1.0f,
+            id = "residencial", groundRow = 0.66f, sun = new Vector2(0.624f, 0.33f), sunSize = 1.0f,
             lamps = new[] { Lp(0.045f, 0.33f, 0.6f, 0.16f), Lp(0.955f, 0.19f, 0.7f, 0.2f), Lp(0.12f, 0.36f, 0.4f, 0.12f) },
             fires = new[] { new Vector2(0.02f, 0.59f) },
             smokes = new[] { new Vector2(0.40f, 0.22f), new Vector2(0.80f, 0.20f) },
@@ -96,13 +96,13 @@ public static class SceneBackgrounds
         });
         Add(new SceneProfile
         {
-            id = "farm", groundRow = 0.62f, sun = new Vector2(0.46f, 0.34f), sunSize = 1.0f,
+            id = "suburb", groundRow = 0.72f, sun = new Vector2(0.46f, 0.34f), sunSize = 1.0f,
             lamps = new[] { Lp(0.034f, 0.40f, 0.55f, 0.18f), Lp(0.137f, 0.425f, 0.45f, 0.16f) },
             smokes = new[] { new Vector2(0.83f, 0.27f), new Vector2(0.63f, 0.28f) },
         });
         Add(new SceneProfile
         {
-            id = "city", groundRow = 0.70f, sun = new Vector2(0.734f, 0.214f), sunSize = 1.1f,
+            id = "city", groundRow = 0.74f, sun = new Vector2(0.734f, 0.214f), sunSize = 1.1f,
             lamps = new[] { Lp(0.169f, 0.127f, 0.8f, 0.24f), Lp(0.958f, 0.17f, 0.8f, 0.24f), Lp(0.60f, 0.47f, 0.5f, 0.12f) },
             fires = new[] { new Vector2(0.025f, 0.60f), new Vector2(0.282f, 0.597f), new Vector2(0.75f, 0.597f) },
             smokes = new[] { new Vector2(0.45f, 0.28f), new Vector2(0.80f, 0.20f) },

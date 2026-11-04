@@ -5,6 +5,12 @@ TextureImporter:
   - first:
       213: 7755442281227494746
     second: engineer_turret_full_0
+  - first:
+      213: -6308595155864870528
+    second: engineer_turret_full_1
+  - first:
+      213: 6510350752962161876
+    second: engineer_turret_full_2
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -112,7 +118,7 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
-    buildTarget: iOS
+    buildTarget: WebGL
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
@@ -125,11 +131,11 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
-    buildTarget: WebGL
-    maxTextureSize: 4096
+    buildTarget: iOS
+    maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 0
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -144,10 +150,10 @@ TextureImporter:
       name: engineer_turret_full_0
       rect:
         serializedVersion: 2
-        x: 0
+        x: 9
         y: 0
-        width: 348
-        height: 320
+        width: 1197
+        height: 1190
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -158,6 +164,50 @@ TextureImporter:
       bones: []
       spriteID: a552c982aadd0ab60800000000000000
       internalID: 7755442281227494746
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: engineer_turret_full_1
+      rect:
+        serializedVersion: 2
+        x: 451
+        y: 17
+        width: 13
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 081acee412e5378a0800000000000000
+      internalID: -6308595155864870528
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: engineer_turret_full_2
+      rect:
+        serializedVersion: 2
+        x: 471
+        y: 15
+        width: 37
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4dca1893489695a50800000000000000
+      internalID: 6510350752962161876
       vertices: []
       indices: 
       edges: []

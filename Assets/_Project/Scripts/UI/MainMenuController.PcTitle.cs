@@ -6,7 +6,7 @@ using UnityEngine.UI;
 // Entry menu only. Uses the approved title artwork and separate functional button layers.
 public partial class MainMenuController
 {
-    const string PcTitleArt="Art/PCTitleUI/";
+    const string PcTitleArt="Art/MoonlitTitle/";
     static readonly Dictionary<string,Sprite> pcTitleSprites=new Dictionary<string,Sprite>();
     RectTransform pcTitleStage;
     GameObject pcTitlePopup;
@@ -52,12 +52,12 @@ public partial class MainMenuController
         pcTitleStage=PcTitleRect(s,"PcTitleStage",0,0,1672,941);
         var fit=pcTitleStage.gameObject.AddComponent<PcTitleFit>();fit.viewport=s;fit.stage=pcTitleStage;fit.Apply();
         PcTitleImage(pcTitleStage,"PcTitleArtwork","title_scene",0,0,1672,941);
-        PcTitleButton("new_game","BtnNewGame",39,278,305,68,OnNewGame);
-        continueBtn=PcTitleButton("continue","BtnContinue",39,354,305,70,OnContinue);
-        PcTitleButton("load","BtnSlots",39,431,305,70,ShowSlots);
-        PcTitleButton("options","BtnOptions",39,507,305,71,OpenPcTitleOptions);
-        PcTitleButton("credits","BtnCredits",39,584,305,70,()=>Show("credits"));
-        PcTitleButton("quit","BtnQuit",39,660,305,72,PcTitleQuit);
+        PcTitleButton("new_game","BtnNewGame",126,289,371,77,OnNewGame);
+        continueBtn=PcTitleButton("continue","BtnContinue",126,385,371,69,OnContinue);
+        PcTitleButton("load","BtnSlots",126,464,371,69,ShowSlots);
+        PcTitleButton("options","BtnOptions",126,543,371,69,OpenPcTitleOptions);
+        PcTitleButton("credits","BtnCredits",126,622,371,69,()=>Show("credits"));
+        PcTitleButton("quit","BtnQuit",126,702,371,69,PcTitleQuit);
         continueBtn.interactable=PcTitleHasSave();
         var refresh=pcTitleStage.gameObject.AddComponent<PcTitleAvailability>();
         refresh.refresh=()=>{if(continueBtn)continueBtn.interactable=PcTitleHasSave();};
