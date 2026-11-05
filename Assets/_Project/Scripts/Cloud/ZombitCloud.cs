@@ -250,10 +250,16 @@ public class ZombitCloud : MonoBehaviour
     IEnumerator NickRoutine(string nick, Action<bool, string> done)
     {
         long code = 0; string text = null;
-        string body = "{\"uid\":\"" + Uid + "\",\"nick\":\"" + nick + "\",\"updated_at\":\"" + DateTime.UtcNow.ToString("o") + "\"}";
-        yield return Rest("POST", "/rest/v1/profiles?on_conflict=uid&select=nick,nick_key", body,
-            "resolution=merge-duplicates,return=representation", (c, t) => { code = c; text = t; });
-        if (code < 200 || code >= 300) { done?.Invoke(false, FriendlyHttp(code, text)); yield break; }
+        string body = "{\"p_nick\":\"" + nick + "\"}";
+        yield return Rest("POST", "/rest/v1/rpc/zb2_set_nick", body, null,
+            (c, t) => { code = c; text = t; });
+        if (code < 200 || code >= 300)
+        {
+            string msg = (text ?? "").Contains("nick_profanity") ? "Esse nick nao e permitido."
+                : (text ?? "").Contains("nick_rate_limited") ? "Limite de trocas de nick. Tente mais tarde."
+                : FriendlyHttp(code, text);
+            done?.Invoke(false, msg); yield break;
+        }
         bool first = State == CloudState.NeedsNick;
         Nick = nick;
         done?.Invoke(true, "");
@@ -286,43 +292,94 @@ public class ZombitCloud : MonoBehaviour
     IEnumerator UploadSlot(int slot)
     {
         inflight.Add(slot);
-        Pending p;
-        while (pending.TryGetValue(slot, out p))
+        string owner = Uid;
+        try
         {
-            pending.Remove(slot);
-            long expected = SaveSystem.RevisionOf(slot);
-            string head = "{\"p_slot\":" + slot + ",\"p_expected_revision\":" + expected;
-            string body = p.deleted ? head + "}" : head + ",\"p_data\":" + p.json + "}";
-            long code = 0; string text = null;
-            yield return Rest("POST", "/rest/v1/rpc/" + (p.deleted ? "zb2_delete_save" : "zb2_put_save"), body, null, (c, t) => { code = c; text = t; });
-            if (code >= 200 && code < 300)
+            Pending p;
+            while (State == CloudState.Ready && owner == Uid && pending.TryGetValue(slot, out p))
             {
-                long nr;
-                if (p.deleted) SaveSystem.SetRevision(slot, 0);
-                else if (long.TryParse((text ?? "").Trim(), out nr)) SaveSystem.SetRevision(slot, nr);
-                continue;
+                pending.Remove(slot);
+                long expected = SaveSystem.RevisionOf(slot);
+                string head = "{\"p_slot\":" + slot + ",\"p_expected_revision\":" + expected;
+                string body = p.deleted ? head + "}" : head + ",\"p_data\":" + p.json + "}";
+                int attempt = 0;
+                while (State == CloudState.Ready && owner == Uid)
+                {
+                    long code = 0; string text = null;
+                    yield return Rest("POST", "/rest/v1/rpc/" + (p.deleted ? "zb2_delete_save" : "zb2_put_save"),
+                        body, null, (c, t) => { code = c; text = t; });
+                    if (owner != Uid || code == -2 || State != CloudState.Ready) yield break;
+                    if (code >= 200 && code < 300)
+                    {
+                        long rev;
+                        if (p.deleted && ((text ?? "").Trim() == "true" || (text ?? "").Trim() == "false"))
+                        { SaveSystem.SetRevision(slot, 0); break; }
+                        if (!p.deleted && long.TryParse((text ?? "").Trim(), out rev) && rev > 0)
+                        { SaveSystem.SetRevision(slot, rev); break; }
+                        ZbRejectAndRecover("Resposta invalida ao salvar. Recarregando do servidor.");
+                        yield break;
+                    }
+                    bool limited = code == 429 || (text ?? "").Contains("rate_limited");
+                    if (limited || code == 0 || code == 408 || code >= 500)
+                    {
+                        // Keep the exact request until acknowledged; newer saves wait.
+                        attempt++;
+                        float delay = limited ? 1.2f : Mathf.Min(20f, Mathf.Pow(2f, Mathf.Min(attempt, 4)));
+                        yield return new WaitForSecondsRealtime(delay + UnityEngine.Random.Range(0f, 0.25f));
+                        continue;
+                    }
+                    ZbRejectAndRecover(code == -1 || code == 401
+                        ? "Sessao indisponivel. Entre novamente se a recuperacao falhar."
+                        : "O servidor recusou o save. " + FriendlyHttp(code, text));
+                    yield break;
+                }
             }
-            if (code == -2) break;   // sessao mudou durante o envio: descarta
-            if (text != null && text.Contains("revision_conflict"))
-            {
-                pending.Clear();
-                Fail("Este save foi alterado em outro dispositivo. Toque em tentar novamente para recarregar.");
-                break;
-            }
-            if (code <= 0 || code >= 500 || code == -1)
-            {
-                if (!pending.ContainsKey(slot)) pending[slot] = p;   // save mais novo, se houver, tem prioridade
-                firstDirtyTime = Time.unscaledTime + 10f;
-                Debug.LogWarning("Zombit: falha ao enviar o slot " + slot + " (" + code + "). Nova tentativa em instantes.");
-                break;
-            }
-            string msg = FriendlyHttp(code, text);
-            Debug.LogError("Zombit: servidor recusou o slot " + slot + ": " + text);
-            LastError = msg;
-            try { SaveRejected?.Invoke(msg); } catch (Exception e) { Debug.LogException(e); }
-            break;
         }
-        inflight.Remove(slot);
+        finally { inflight.Remove(slot); }
+    }
+
+    int zbFailureGeneration;
+    bool zbRecovering;
+
+    void ZbRejectAndRecover(string message)
+    {
+        if (zbRecovering) return;
+        zbRecovering = true;
+        zbFailureGeneration++;
+        pending.Clear();
+        LastError = message;
+        SetState(CloudState.Syncing);
+        try { SaveRejected?.Invoke(message); } catch (Exception e) { Debug.LogException(e); }
+        StartCoroutine(ZbRecoverSaves(Uid));
+    }
+
+    IEnumerator ZbRecoverSaves(string owner)
+    {
+        while (inflight.Count > 0) yield return null;
+        if (Uid != owner || string.IsNullOrEmpty(owner)) { zbRecovering = false; yield break; }
+        yield return SyncRoutine();
+        zbRecovering = false;
+        if (Uid == owner && State == CloudState.Ready)
+        {
+            GameSession.Reset();
+            UnityEngine.SceneManagement.SceneManager.LoadScene(GameSession.MenuSceneIndex);
+        }
+    }
+
+    public static IEnumerator FlushAndWait(Action<bool> done, float timeoutSeconds = 30f)
+    {
+        var cloud = I;
+        if (cloud == null || !IsReady) { done?.Invoke(false); yield break; }
+        int generation = cloud.zbFailureGeneration;
+        string owner = Uid;
+        cloud.FlushNow();
+        float start = Time.realtimeSinceStartup;
+        while (I == cloud && IsReady && owner == Uid && generation == cloud.zbFailureGeneration
+            && (cloud.pending.Count > 0 || cloud.inflight.Count > 0)
+            && Time.realtimeSinceStartup - start < timeoutSeconds)
+            yield return null;
+        done?.Invoke(I == cloud && IsReady && owner == Uid && generation == cloud.zbFailureGeneration
+            && cloud.pending.Count == 0 && cloud.inflight.Count == 0);
     }
 
     // ---------- fluxo da conta ----------

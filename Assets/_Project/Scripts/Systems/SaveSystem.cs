@@ -29,6 +29,7 @@ public static class SaveSystem
             Debug.LogWarning("Zombit: sem conta online ativa; o save fica apenas na memória desta sessão.");
         }
         ZombitCloud.QueueSave(d.slot, json, d.ticks);
+        if (ZombitCloud.IsReady && ZombitCloud.I != null) ZombitCloud.I.FlushNow();
     }
 
     // ---- usado pela sincronizacao com a nuvem (ZombitCloud) ----
@@ -100,8 +101,9 @@ public static class SaveSystem
 
     public static void Delete(int slot)
     {
-        DeleteLocalOnly(slot);
+        store.Remove(slot);
         ZombitCloud.QueueDelete(slot);
+        if (ZombitCloud.IsReady && ZombitCloud.I != null) ZombitCloud.I.FlushNow();
     }
 
     public static int FirstEmptySlot()
