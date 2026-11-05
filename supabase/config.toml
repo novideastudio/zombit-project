@@ -1,0 +1,30 @@
+# Aplique com: supabase link --project-ref <ref> && supabase config push
+# Confira depois no painel (Authentication) - o painel e a fonte final.
+[auth]
+enable_signup = true                 # necessario para o PRIMEIRO login via Google criar a conta
+enable_anonymous_sign_ins = false
+site_url = "https://SEU-DOMINIO-WEB"
+additional_redirect_urls = [
+  "https://zombit.novidea.es/",             # WebGL (exato, sem curinga)
+  "com.novidea.zombit://auth",            # Android
+  "http://127.0.0.1:53682/"               # Windows/Editor
+]
+minimum_password_length = 12
+
+[auth.email]
+enable_signup = false                # desliga cadastro por e-mail/senha
+enable_confirmations = true
+
+[auth.external.google]
+enabled = true
+client_id = "env(GOOGLE_CLIENT_ID)"
+secret = "env(GOOGLE_CLIENT_SECRET)"
+
+[auth.rate_limit]
+email_sent = 2
+sign_in_sign_ups = 30                # por 5 min por IP
+token_refresh = 150
+token_verifications = 30
+
+[functions.delete-account]
+verify_jwt = true
