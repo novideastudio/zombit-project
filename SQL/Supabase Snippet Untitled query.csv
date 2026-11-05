@@ -1,0 +1,3 @@
+indexname,indexdef
+profiles_pkey,CREATE UNIQUE INDEX profiles_pkey ON public.profiles USING btree (uid)
+profiles_nick_key_unique,CREATE UNIQUE INDEX profiles_nick_key_unique ON public.profiles USING btree (nick_key)
