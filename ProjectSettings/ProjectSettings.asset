@@ -171,6 +171,7 @@ PlayerSettings:
   androidMaxAspectRatio: 2.4
   androidMinAspectRatio: 1
   applicationIdentifier:
+    Android: com.Novidea.Zombit
     Standalone: com.DefaultCompany.2D-URP
   buildNumber:
     Standalone: 0
@@ -303,7 +304,7 @@ PlayerSettings:
   - m_BuildTarget: 
     m_Icons:
     - serializedVersion: 2
-      m_Icon: {fileID: 2800000, guid: c7649afe6edcd1b4a97e9cca53c32ea7, type: 3}
+      m_Icon: {fileID: 2800000, guid: fd3a4a3968c0f8b4c807e67a3879be18, type: 3}
       m_Width: 128
       m_Height: 128
       m_Kind: 0
